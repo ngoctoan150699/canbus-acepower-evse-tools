@@ -1,0 +1,327 @@
+
+--- Page 1 ---
+USB-CAN-B
+(http://www .waveshar e.com/USB-
+CAN-B.htm)
+USB To CAN ConverterUSB-CAN-B
+From W aveshar e Wiki
+Jump t o: navigation , search
+Overview
+Introduction
+USB-CAN-B is an industrial high-per formance USB-t o-CAN
+adapt er, CAN-bus communication int erface car d, and CAN
+protocol data analyzer . Integrating dual independent
+channels with electrical isolation and multiple pr otection
+circuits. Suppor ts Windows and Linux syst ems, and comes
+with driv ers, CANT ools-r elated so ftware, secondar y
+development examples, and tut orials. It can be connect ed
+to the PC or industrial contr ol host via a USB por t to realize
+transceiv er contr ol, data analysis, collection, and monit oring o f the CAN bus netw ork.
+--- Page 2 ---
+Comp act in size and easy t o use, it can be used for lear ning and debugging o f CAN bus, and
+secondar y dev elopment and int egration int o various industrial, pow er communication, and
+intelligent contr ol applications that r equir e CAN bus communication.
+Specification
+Model USB-CAN-B USB-CAN-FD
+Product
+TypeIndustrial
+GradeUSB to CAN Interface Converter /
+CAN-bus Communication Card/ CAN
+Protocol Data AnalyerIndustrial Grade: USB to CAN FD interface
+converter, CAN/CAN FD serial bus
+communication interface card, CAN/CAN
+FD protocol data analyzer
+USB PortWorking
+Voltage5V (Directly powered via USB port, no additional power supply required.)
+Interface
+FormUSB-B Port
+CAN/CAN
+FD InterfaceCAN/CAN
+FD ChannelsDual channels: CAN1 and CAN2 (Independent of each other, do not affect each
+other, full isolation, isolation voltage 3000V DC.)
+Interface
+FormScrew Terminal (OPEN6 5.08mm pitch)
+Matching
+ResistorEach CAN/CAN FD channel has two built-in 120Ω terminal resistors, which can be
+enabled by switch
+Baudrate10Kbps~1Mbps (Configurable via
+software)100Kbps~5Mbps (Configurable via
+software)
+Protocol
+SupportCAN2.0A and 2.0B, CANOpen, SAE
+J1939, DeviceNet, iCAN, ISO 15765
+protocolCAN2.0A and 2.0B, ISO 11898-1 CAN FD
+Protocol V.1.0
+Transfer
+SpeedThe receiving and sending speed of
+each CAN/CAN FD channel can reach
+8500 frames/sThe receiving and sending speed of each
+CAN/CAN FD channel can reach 20000
+frames/s and 5000 frames/s
+Transmit
+Buffer2000 frames receiving buffer and
+1000 frames sending buffer per
+channel (automatically retransmit
+when the transmission fails.)1500 frames receiving buffer and 64
+frames sending buffer per channel
+(automatically retransmit when the
+transmission fails.)
+IndicatorPWR Power Indicator
+SYS System status indicator, normally off; keeps on when there is a bus error
+CAN1 CAN1 channel indicator (blinking when sending and receiving data.)
+CAN2 CAN2 channel indicator (blinking when sending and receiving data.)
+System
+SupportWindows Windows XP/7/8/10/11 (32 bits and 64 bits)
+LinuxLinux systems such as Raspberry Pi
+OS, Ubuntu (Jetson Nano), VMware
+virtual machines, etc.Does Not support the Linux system now,
+and the related drivers are under
+development.
+Operating Temperature -40～85℃
+--- Page 3 ---
+Case MaterialAluminum alloy case + 3D flame-retardant insulating sheets on both sides (This
+design can provide better protection against metal tip discharge, improve product
+safety, and extend service life.)
+Dimensions 104 × 70 × 25 mm
+Working with Windows PC
+Driver Installation
+Downlo ad the USB-CAN-B/FD Windows driv er (https://files.wav eshar e.com/wiki/USB-CAN-
+B/driv er/USB-CAN-B-Driv er-Setup(V1.40).ex e.zip) . Connect USB-CAN-B int elligent int erface
+module t o the PC with a USB cable corr ectly. The Windows will then aut o-run an installation
+wizar d called "new har dwar e is found" af ter the har dwar e is det ected. Select "Install the
+software aut omatically (R ecommended)".
+Click "Next" t o continue;
+(/wiki/File:Image4-
+USB-CAN-B-
+Driver_(1).png) 
+(/wiki/File:Image4-
+USB-CAN-B-
+Driver_(2).png) 
+(/wiki/File:Image4-
+USB-CAN-B-
+Driver_(3).png) 
+(/wiki/File:Image4-
+USB-CAN-B-
+Driver_(4).png)
+(/wiki/File:USB-
+CNA-B-driv er.png)
+USB-CAN-B T ool So ftwar e
+Downlo ad and Install
+Downlo ad and unp ack USB-CAN-B T OOL_EN  (https://files.wav eshar e.com/uplo ad/3/32/USB_
+CAN_T OOL.zip) , then run and install USB_CAN_T ool.ex e.
+--- Page 4 ---
+(/wiki/File:USB-
+CAN-B-
+TOOL_(1).png) 
+(/wiki/File:USB-
+CAN-B-
+TOOL_(1).jpeg) 
+(/wiki/File:USB-
+CAN-B-
+TOOL_(2).png) 
+(/wiki/File:USB-
+CAN-B-
+TOOL_(3).png)
+(/wiki/File:USB-
+CAN-B-
+TOOL_(4).png)
+The fir st time t o install the USB-CAN-B please mak e sur e to check " run Engine ".this
+installation p ackage is needed for the application dev eloped fr om the L ABVIE W
+envir onment. The fir st time t o install the USB-CAN-B please mak e sur e to check " run
+Engine ".this installation p ackage is needed for the application dev eloped fr om the L ABVIE W
+envir onment.
+--- Page 5 ---
+(/wiki/File:USB-
+CAN-B-
+TOOL_(5).png) 
+(/wiki/File:USB-
+CAN-B-
+TOOL_(6).png) 
+(/wiki/File:USB-
+CAN-B-
+TOOL_(7).png) 
+(/wiki/File:USB-
+CAN-B-
+TOOL_(8).png)
+(/wiki/File:USB-
+CAN-B-
+TOOL_(9).png) 
+(/wiki/File:USB-
+CAN-B-
+TOOL_(10).png)
+Directions for Use
+Here we tak e the mat ched USB-CAN T ool as an example. If y ou need t o use other hosts
+such as CANT est and CANPr o, you can r efer t o this link  (https://www .waveshar e.com/wiki/
+ZLG-CAN_T ool_User_Guide) .
+--- Page 6 ---
+Connect the USB int erface o f the device with the PC via USB.
+Run "USB-CAN-B T ool.ex e" as shown in the following figur e:
+(/wiki/File:USB-CAN-T OOL_image10.jpg)
+1.Title Bar
+When the device is tur ned o ff, USB-CAN T ool V9.xx will be display ed, wher e V9.xx r epresents
+the curr ent pr ogram v ersion number ; when a USB-CAN adapt er is successfully opened, the
+model, serial number , firmwar e version number , and brand name will be appended t o the
+abov e name.
+2.Menu Bar
+Most o f the functions o f this t ool ar e in the menu, and the functions can be r ealized by
+clicking the corr esponding menu.
+3.Sending Setting Section
+This section contains the setting infor mation r elated to CAN infor mation transmission,
+among which the "ID incr ement" function is that when sending multi-frame data, the ID
+value o f the next frame o f data is 1 gr eater than the ID v alue o f the pr evious frame; The sent
+8 bytes of data fr om a 64-bit number accor ding t o the by te order fr om low t o high, and
+each time the data is sent, it is aut omatically incr ement ed by 1. This function cooperat es
+with the " receiv e incr emental check" function t o test the frame loss rat e during high-speed
+--- Page 7 ---
+transmission. Not e: This function is generally used for int ernal testing and is not
+recommended for user s. When the data length is set t o be less than 8 by tes, it will be
+automatically filled with 0 and filled t o 8 by tes.
+4.Can R elay
+The CAN r elay function is configur ed in the menu "Device Operation " -> "R elay Mode
+Options". When configur ed in r elay mode, the r elay status will be display ed her e. If y ou want
+to tur n off this function, y ou can close in the menu "Device Operation " -> "R elay Mode
+Options". Not e: After the r elay function is enabled, the b aud rat e and other p aramet er
+settings ar e inv alid, but the sending and r eceiving, and int elligent filt ering functions can be
+used nor mally .
+5.Int elligent Filt ering Function
+The tw o channels can be set sep arately, and the filt er is only for r eception. Af ter enabling
+the filt ering function, the ID in the filt er list or the ID in the ID segment will be display ed and
+receiv ed, and the data outside the filt er list will be mask ed and discar ded. With flexible
+settings for int elligent filt ering, any ID or ID segment can be allow ed or block ed from being
+receiv ed.
+6.Contr ol Butt on
+"Stop sending" - st op the curr ent sending operation; "Send file " - st ore the sent frame
+infor mation in a file in a specific for mat, and send it in the or der o f the frames st ored in the
+file; "Open CAN r eception " - the CAN r eceiv e is enabled, other wise the CAN r eceiving
+function is in the " suspended" stat e, at this time the host comput er will no longer display
+the CAN bus data r eceiv ed by the USBCAN device, but the USBCAN device is still r eceiving
+the data on the CAN bus; "Clear" - clear The cont ents o f the curr ent data list; "R eal-time
+storage " - sav es the r eal-time data t o a file.
+Note: Sending a file may be consist ent with the file for mat sav ed by the r eal-time st orage
+function, and the sav ed file can be sent dir ectly in the for m of a file.
+7.Statistics Ar ea
+Includes one-way rat e and r eceiv es incr ementing p arity err or count ers for channel 1 and
+channel 2. "Frame rat e R" - r eceiving rat e, unit: fps (frames per second); "frame rat e T" -
+sending rat e, unit: fps (frames per second); "P arity err or" (int ernal functions ar e hidden by
+default) - —R eceiv e data incr ement p arity err or count er, this v alue is the t otal number o f
+dropped frames when r eceiving incr ement p arity. 8. Data list
+The list for displaying the data sent and r eceiv ed.
+Please r efer t o the USB-CAN T OOL Debugging So ftware User Manual  (https://files.wav eshar
+e.com/uplo ad/7/78/USB-CAN-T OOL-EN.pdf ) documentation for details.
+--- Page 8 ---
+Working with Linux
+ARM-Linxu-32bit
+c
+Suppor t access t o mainstr eam Linux syst em motherbo ards, tak e Raspberr y Pi 4B as an
+example:
+(/wiki/File:USB-CAN-B-USB-RPI.png)
+cd ~
+wget https://files.waveshare.com/upload/1/1c/USB-CAN-B_Code.zip
+unzip USB-CAN-B_Code.zip
+sudo chmod 777 -R USB-CAN-B_Code
+cd USB-CAN-B_Code/Raspberry/c/
+sudo make clean
+sudo make
+sudo ./hello_cpp
+
+--- Page 9 ---
+(/wiki/File:USB-CAN-B-RPI.png)
+python
+cd ~
+cd USB-CAN-B_Code/Raspberry/python/
+sudo python3 python3-32bit.py
+
+--- Page 10 ---
+(/wiki/File:USB-CAN-A-linuxlit e.png)
+ARM-Linxu-64bit
+c
+Suppor t access t o mainstr eam Linux syst em motherbo ards, tak e JETSON-IO-BASE-A as an
+example: 
+(/wiki/File:USB-CAN-B-Jetson.png)
+--- Page 11 ---
+wget https://files.waveshare.com/upload/1/1c/USB-CAN-B_Code.zip
+unzip USB-CAN-B_Code.zip
+sudo chmod 777 -R USB-CAN-B_Code
+cd USB-CAN-B_Code/Jetson/c
+sudo make clean
+sudo make
+sudo ./hello_cpp
+(/wiki/File:USB-CAN-A-demo-Jetson.png)
+python
+cd ~
+cd USB-CAN-B_Code/Jetson/python/
+sudo python3 python3-64bit.py
+
+--- Page 12 ---
+(/wiki/File:USB-CAN-A-linuxlit e.png)
+Resour ce
+Documentation
+USB-CAN-B Manual  (https://files.wav eshar e.com/uplo ad/f/f3/USB-CAN-B_Manual.pdf )
+Interface Function Librar y User Instruction  (https://files.wav eshar e.com/uplo ad/7/7d/Int erfa
+ce_Function_Librar y_User_Instruction.pdf )
+USB-CAN T OOL Debugging So ftware User Manual  (https://files.wav eshar e.com/uplo ad/7/7
+8/USB-CAN-T OOL-EN.pdf )
+Windows Librar y Files  (https://files.wav eshar e.com/wiki/USB-CAN-B/Demo/lib/Secondar y-li
+b-dll.zip)
+Linux Librar y Files  (https://files.wav eshar e.com/wiki/USB-CAN-B/Demo/lib/second-librar y.zi
+p)
+Softwar e
+USB-CAN-B T OOL_EN(V9.15)  (https://files.wav eshar e.com/wiki/USB-CAN-B/USB_CAN-T OOL
+Setup(V9.14).zip)
+USB-CAN-B Driv er_installation_(T ool_SetupV1.40)  (https://files.wav eshar e.com/wiki/USB-CA
+N-B/driv er/USB-CAN-B-Driv er-Setup(V1.40).ex e.zip)
+USB-CAN-B Usb_Driv ers(Manual installation)  (https://www .waveshar e.com/wiki/File:Usb_Dri
+vers(Manual_installation).zip)
+Contr olCAN.DLL file  (https://files.wav eshar e.com/uplo ad/b/b7/Contr olCAN.zip%7C)
+--- Page 13 ---
+CANPr o (https://www .waveshar e.com/w/A6Y79bcq/K dy80nYY .php?f=USB-CAN-B-ZL G-ima
+ge12_%281%29.png&width=900)
+Demo
+USB-CAN-B_Code  (https://files.wav eshar e.com/uplo ad/1/1c/USB-CAN-B_Code.zip)
+Linux_ARM_X86_32/64_demo  (https://files.wav eshar e.com/wiki/USB-CAN-B/Demo/Seconda
+ry_dev elopment_example.zip)
+FAQ
+Question: How t o communicat e with other CAN devices?
+ Answ er:
+Take 2-CH CAN FD HA T (https://www .waveshar e.com/2-ch-can-fd-hat.htm)  as an example,
+the test st eps ar e as follows:
+Hardwar e connection:
+(/wiki/File:USB-CAB-B-raspberr y.png)
+Software setup
+sudo apt-get install can-utils
+sudo ip link set can0 up type can bitrate 1000000
+candump can0
+cansend can0 000#11.22.33.44
+
+--- Page 14 ---
+(/wiki/File:USB-CAN-B-T X-RX .png)
+Question: How can I change the CAN b aud rat e?
+ Answ er:
+(/wiki/File:USB-CAN-B-F AQ.png)
+Question: Can y ou Shar e LABview code for USB-CAN-B (CAN Bus Analyzer)
+--- Page 15 ---
+ Answ er:
+This is the complet e sample pr ogram netw ork disk sharing link o f LabView , please click
+the link t o downlo ad the r elevant pr ogram:
+https://drive.google.com/file/d/1W5TsWudOJrbuw6Dfxm8bihMjm-bUQAAU/view?usp=sharing
+Question: Does it suppor t j1939 pr otocol?
+ Answ er:
+The USB-CAN-B module suppor ts the SAE J1939 pr otocol.
+Question: Does it suppor t ZLG?
+ Answ er:
+Yes, it suppor ts.
+Suppor t
+Technical Suppor t
+If you need t echnical suppor t or hav e any
+feedb ack/r eview , please click the Submit
+Now  butt on to submit a tick et, Our
+suppor t team will check and r eply t o you
+within 1 t o 2 w orking days. Please be
+patient as w e mak e every effor t to help
+you to resolv e the issue.
+Working Time: 9 AM - 6 PM GMT+8
+(Monday t o Friday)Submit Now  (https://ser vice.w
+aveshar e.com/)
+--- Page 16 ---
+Retrieved from "https://www.waveshare.com/w/index.php?title=USB-CAN-B&oldid=100250
+(https://www.waveshare.com/w/index.php?title=USB-CAN-B&oldid=100250)"

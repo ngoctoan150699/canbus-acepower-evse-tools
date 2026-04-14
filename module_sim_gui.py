@@ -1,15 +1,18 @@
+# -*- coding: utf-8 -*-
 import sys
 import threading
 import time
 import ctypes
 import re
+import random
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QMessageBox,
                              QGridLayout, QTextEdit, QSpinBox, QCheckBox)
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QDateTime
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 
-from acepower_can import AcePowerCANController, BAUDRATE_MAP, DEVICE_TYPES, VCI_CAN_OBJ
+import os
+from acepower_can import AcePowerCANController, BAUDRATE_MAP, DEVICE_TYPES, VCI_CAN_OBJ, resource_path, log_debug
 
 class SimpleModuleSimulator(QMainWindow):
     signal_rx = pyqtSignal(str)
@@ -24,9 +27,14 @@ class SimpleModuleSimulator(QMainWindow):
         self.act_i = 0.0
         self.set_v = 100.0
         self.set_i = 10.0
+        self.ac_vin = 220.0
+        self.temp_c = 32.0
+        self.fan_rpm = 0
         
         self.rx_running = False
         self.scanned_devices = []
+        
+        self.can_ctrl.on_all_rx_callback = self.on_can_raw_data
         
         self.init_ui()
         self.signal_rx.connect(self.update_log)
@@ -34,10 +42,17 @@ class SimpleModuleSimulator(QMainWindow):
         self.sim_thread_running = True
         self.sim_thread = threading.Thread(target=self.physics_loop, daemon=True)
         self.sim_thread.start()
+        
+        # Initial UI state (Auto-scan removed for stability)
 
     def init_ui(self):
         self.setWindowTitle('AcePower Module Simulator (Simple Mode)')
         self.resize(1000, 750)
+        
+        # Set Window Icon
+        icon_path = resource_path("charging-station.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
         
         central = QWidget()
         main_layout = QVBoxLayout(central)
@@ -72,9 +87,17 @@ class SimpleModuleSimulator(QMainWindow):
         # 2. Virtual State
         group_status = QGroupBox("Status & Control")
         h_st = QHBoxLayout()
+        
+        h_st.addWidget(QLabel("Sim ID:"))
+        self.spin_addr = QSpinBox()
+        self.spin_addr.setRange(1, 64)
+        self.spin_addr.setValue(1)
+        self.spin_addr.setFixedWidth(50)
+        h_st.addWidget(self.spin_addr)
+        
         self.lbl_status = QLabel("STATE: OFF | V: 0.00V | I: 0.00A")
         self.lbl_status.setFont(QFont("Consolas", 12, QFont.Bold))
-        h_st.addWidget(self.lbl_status)
+        h_st.addWidget(self.lbl_status, stretch=1)
         
         self.cb_fault_fan = QCheckBox("Simulate Fan Fail")
         self.cb_fault_ac = QCheckBox("Simulate AC Over")
@@ -108,62 +131,73 @@ class SimpleModuleSimulator(QMainWindow):
         self.setCentralWidget(central)
 
     def on_scan_clicked(self):
-        self.combo_device.clear(); self.scanned_devices = []
+        log_debug("Simu UI: Scan Button Clicked")
         dt = DEVICE_TYPES.get(self.combo_type.currentText(), 4)
         try:
             devs = self.can_ctrl.scan_devices(dt)
             if devs:
+                log_debug(f"Simu UI: Found {len(devs)} devices")
+                self.combo_device.clear()
                 self.scanned_devices = devs
                 for d in devs: self.combo_device.addItem(d['display'])
                 self.btn_connect.setEnabled(True)
-            else: QMessageBox.warning(self, "No Dev", "No USB-CAN found.")
-        except Exception as e: QMessageBox.critical(self, "Error", str(e))
+                if len(devs) > 1: self.combo_device.setCurrentIndex(1)
+            else:
+                log_debug("Simu UI: No devices found")
+                QMessageBox.warning(self, "No Devices", "No USB-CAN adapters found. Check cables.")
+        except Exception as e:
+            log_debug(f"Simu UI: Scan Error: {e}")
+            QMessageBox.warning(self, "Scan Error", str(e))
+    
 
     def toggle_connection(self):
-        if not self.rx_running:
+        if not self.can_ctrl.connected:
             sel = self.combo_device.currentIndex()
             if sel < 0: return
             dev = self.scanned_devices[sel]; dt = DEVICE_TYPES.get(self.combo_type.currentText(), 4)
             bd = self.combo_baud.currentText()
-            try:
-                self.can_ctrl.connect(dt, dev['index'], 0, bd)
-                self.rx_running = True
+            
+            ok, msg = self.can_ctrl.connect(dt, dev['index'], 0, bd)
+            if ok:
+                self.can_ctrl.on_all_rx_callback = self.on_can_raw_data
                 self.btn_connect.setText("Disconnect"); self.btn_scan.setEnabled(False)
-                threading.Thread(target=self.rx_loop, daemon=True).start()
-                self.signal_rx.emit(f"Connected to {dev['display']}")
-            except Exception as e: QMessageBox.critical(self, "Error", str(e))
+                self.signal_rx.emit(f"+++ Connected to {dev['display']}")
+            else:
+                QMessageBox.warning(self, "Fail", msg)
         else:
-            self.rx_running = False; self.can_ctrl.disconnect(); self.btn_connect.setText("Connect"); self.btn_scan.setEnabled(True)
+            self.can_ctrl.disconnect()
+            self.btn_connect.setText("Connect"); self.btn_scan.setEnabled(True)
+            self.signal_rx.emit("--- Disconnected.")
 
-    def rx_loop(self):
-        buffer_size = 50
-        vci_obj_array = (VCI_CAN_OBJ * buffer_size)()
-        error_count = 0
-        while self.rx_running and self.can_ctrl.connected:
-            try:
-                num = self.can_ctrl.lib.VCI_Receive(self.can_ctrl.dev_type, self.can_ctrl.dev_idx, self.can_ctrl.can_idx, ctypes.byref(vci_obj_array), buffer_size, 0)
-                if num > 0:
-                    error_count = 0
-                    for i in range(num): self.handle_frame(vci_obj_array[i])
-                elif num < 0: # Lỗi từ thư viện
-                    error_count += 1
-                    if error_count > 5:
-                        self.signal_rx.emit("!!! Critical RX Error (995/Aborted). Disconnecting...")
-                        self.rx_running = False
-                        break
-                    time.sleep(0.5)
-            except:
-                time.sleep(0.5)
-            time.sleep(0.01)
+    def on_can_raw_data(self, can_id, data, direction, extern, remote):
+        if direction == "Receive":
+            # Mock frame to reuse handle_frame logic
+            class MockFrame: pass
+            f = MockFrame(); f.ID = can_id; f.Data = data; f.DataLen = len(data)
+            self.handle_frame(f)
+
+
 
     def handle_frame(self, frame):
         data = list(frame.Data)[:frame.DataLen]
         self.signal_rx.emit(f"RECV ID: 0x{frame.ID:08X} | DATA: {' '.join([f'{x:02X}' for x in data])}")
         
         if len(data) < 2: return
+        
+        # Parse Module Address from ID (Bits 14-20)
+        target_addr = (frame.ID >> 14) & 0x7F
+        my_addr = self.spin_addr.value()
+        
+        # Only respond if it matches my ID or is Broadcast (0)
+        if target_addr != 0 and target_addr != my_addr:
+            return
+            
         msg_type = data[0] & 0x0F
         cmd = data[1]
-        res_id = 0x03214000 
+        
+        # Build Response ID based on my Sim ID
+        # Logic: 0x03210000 | (my_addr << 14)
+        res_id = 0x03210000 | (my_addr << 14)
 
         if msg_type == 0x00: # SET
             self.send_auto_res(res_id, cmd, 0, msg_type_res=0x01)
@@ -173,10 +207,15 @@ class SimpleModuleSimulator(QMainWindow):
         elif msg_type == 0x02: # READ
             if cmd == 0x00: self.send_auto_res(res_id, 0x00, int(self.act_v*1000))
             elif cmd == 0x01: self.send_auto_res(res_id, 0x01, int(self.act_i*1000))
+            elif cmd == 0x14: self.send_auto_res(res_id, 0x14, int(self.ac_vin*1000))
+            elif cmd == 0x1E: self.send_auto_res(res_id, 0x1E, int(self.temp_c*100)) # mC
+            elif 0x78 <= cmd <= 0x7A: self.send_auto_res(res_id, cmd, int(self.fan_rpm))
             elif cmd == 0x08:
                 st = (1 << 25) if not self.is_on else 0
                 if self.cb_fault_fan.isChecked(): st |= (1 << 9)
                 if self.cb_fault_ac.isChecked(): st |= (1 << 0)
+                # DC Fault simulated if current > set i * 1.1
+                if self.act_i > self.set_i * 1.1: st |= (1 << 1)
                 self.send_auto_res(res_id, 0x08, st)
 
     def send_auto_res(self, res_id, cmd, val, msg_type_res=0x03):
@@ -193,33 +232,51 @@ class SimpleModuleSimulator(QMainWindow):
 
     def physics_loop(self):
         while self.sim_thread_running:
+            # 1. AC Voltage simulation (stable around 220V)
+            self.ac_vin = 220.0 + random.uniform(-1.5, 1.5)
+            
+            # 2. Power Output Simulation
             if self.is_on:
-                # Dâng áp từ từ (Ramping up)
+                # Voltage Ramping
                 diff = self.set_v - self.act_v
                 if abs(diff) > 0.5:
                     step = 5.0 if diff > 0 else -5.0
                     self.act_v += step
-                    if (step > 0 and self.act_v > self.set_v) or (step < 0 and self.act_v < self.set_v):
-                        self.act_v = self.set_v
                 else:
                     self.act_v = self.set_v
                 
-                # Mô phỏng dòng điện có tải (khoảng 95% dòng limit)
-                self.act_i = self.set_i * 0.95 if self.act_v > 50 else 0
+                # Add tiny ripple to voltage
+                self.act_v += random.uniform(-0.05, 0.05) if self.act_v > 0 else 0
+                
+                # Current follows load logic (simulated load resistance)
+                target_i = self.set_i * 0.95
+                if self.act_i < target_i: self.act_i += 1.0
+                elif self.act_i > target_i: self.act_i -= 0.5
+                self.act_i += random.uniform(-0.02, 0.02)
+                
+                # Fan Speed logic
+                self.fan_rpm = 4500 + random.randint(-50, 50)
+                
+                # Heatup logic
+                if self.temp_c < 55.0: self.temp_c += 0.05 * (self.act_i / 10.0)
             else:
-                # Tụt áp khi tắt nguồn
+                # Voltage discharge
                 if self.act_v > 0:
                     self.act_v *= 0.92
                     if self.act_v < 1.0: self.act_v = 0
                 self.act_i = 0
+                self.fan_rpm = 0
+                # Cooldown logic
+                if self.temp_c > 32.0: self.temp_c -= 0.02
             
-            # Cập nhật giao diện Simulator
+            # UI Update
             st_text = "RUNNING" if self.is_on else "SHUTDOWN"
             color = "green" if self.is_on else "red"
-            self.lbl_status.setText(f"STATE: {st_text} | ACT V: {self.act_v:.2f}V | ACT I: {self.act_i:.2f}A")
+            status_str = f"STATE: {st_text} | V: {self.act_v:.1f}V | I: {self.act_i:.1f}A | AC: {self.ac_vin:.1f}V | Temp: {self.temp_c:.1f}C"
+            self.lbl_status.setText(status_str)
             self.lbl_status.setStyleSheet(f"color: {color}; font-weight: bold;")
             
-            time.sleep(0.1) # Cập nhật mượt mà 10Hz
+            time.sleep(0.1)
 
     @pyqtSlot(str)
     def update_log(self, text):

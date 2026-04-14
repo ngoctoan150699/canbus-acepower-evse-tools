@@ -1,0 +1,5 @@
+[2026-04-14 15:30:11] UI: Scan Button Clicked
+[2026-04-14 15:30:11] Starting scan for dev_type=4
+[2026-04-14 15:30:11] VCI_FindUsbDevice2 returned count=0
+[2026-04-14 15:30:11] Running sequential scan fallback
+[2026-04-14 15:30:11] UI: No devices found

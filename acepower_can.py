@@ -2,7 +2,26 @@ import ctypes
 import os
 import threading
 import time
+import sys
 from traceback import print_exc
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+    
+def log_debug(message):
+    """Write debug info to file to help diagnose crashes"""
+    try:
+        with open("debug_log.txt", "a", encoding="utf-8") as f:
+            ts = time.strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"[{ts}] {message}\n")
+    except:
+        pass
 
 # Constants
 VCI_USBCAN2 = 4
@@ -78,95 +97,83 @@ class AcePowerCANController:
         self.monitor_address = 1
         
         try:
-            self.lib = ctypes.windll.LoadLibrary(os.path.abspath(dll_path))
+            full_path = resource_path(dll_path)
+            self.lib = ctypes.windll.LoadLibrary(full_path)
         except Exception as e:
-            print(f"Error loading {dll_path}: {e}")
+            print(f"Error loading {dll_path} from {full_path}: {e}")
 
     def scan_devices(self, dev_type=4):
-        """Quét tất cả thiết bị USB-CAN đang cắm vào máy.
-        Trả về list các dict: [{index, serial, fw_version, hw_type}, ...]
-        """
+        """Quét tất cả thiết bị USB-CAN đang cắm vào máy (Safe Mode)."""
         if not self.lib:
-            raise RuntimeError("ControlCAN DLL is not loaded.")
+            log_debug("Scan aborted: DLL not loaded")
+            return []
         
-        # Thử VCI_FindUsbDevice2 trước (hỗ trợ trả thông tin chi tiết)
-        max_devices = 8
-        info_array = (VCI_BOARD_INFO * max_devices)()
+        log_debug(f"Starting safe sequential scan for dev_type={dev_type}")
         devices = []
         
-        try:
-            count = self.lib.VCI_FindUsbDevice2(ctypes.byref(info_array))
-            if count > 0:
-                for i in range(min(count, max_devices)):
-                    serial = bytes(info_array[i].str_Serial_Num).decode('ascii', errors='ignore').strip('\x00')
-                    hw_type = bytes(info_array[i].str_hw_Type).decode('ascii', errors='ignore').strip('\x00')
-                    fw_ver = info_array[i].fw_Version
-                    fw_str = f"V{(fw_ver >> 8) & 0xFF}.{fw_ver & 0xFF:02d}"
-                    devices.append({
-                        'index': i,
-                        'serial': serial,
-                        'fw_version': fw_str,
-                        'hw_type': hw_type,
-                        'display': f"Device {i}: SN={serial}, FW={fw_str}"
-                    })
-                return devices
-        except Exception:
-            pass
-        
-        # Fallback: thử open từng device index để kiểm tra chúng có tồn tại không
-        for idx in range(4):
+        # We skip VCI_FindUsbDevice2 because it causes crashes on some systems
+        # Sequential scan is slower but 100% stable.
+        for idx in range(8): # Check up to 8 devices
             try:
+                # Open with minimal access to check existence
                 ret = self.lib.VCI_OpenDevice(dev_type, idx, 0)
                 if ret == STATUS_OK:
                     info = VCI_BOARD_INFO()
+                    ctypes.memset(ctypes.byref(info), 0, ctypes.sizeof(info))
                     self.lib.VCI_ReadBoardInfo(dev_type, idx, ctypes.byref(info))
+                    
                     serial = bytes(info.str_Serial_Num).decode('ascii', errors='ignore').strip('\x00')
-                    hw_type = bytes(info.str_hw_Type).decode('ascii', errors='ignore').strip('\x00')
                     fw_ver = info.fw_Version
                     fw_str = f"V{(fw_ver >> 8) & 0xFF}.{fw_ver & 0xFF:02d}"
+                    
                     devices.append({
                         'index': idx,
                         'serial': serial,
                         'fw_version': fw_str,
-                        'hw_type': hw_type,
                         'display': f"Device {idx}: SN={serial}, FW={fw_str}"
                     })
                     self.lib.VCI_CloseDevice(dev_type, idx)
-            except Exception:
+                    log_debug(f"Scan: Found device {idx}")
+            except Exception as e:
+                log_debug(f"Scan: Error on index {idx}: {e}")
                 continue
         
+        log_debug(f"Scan finished. Found {len(devices)} devices.")
         return devices
 
-    def connect(self, dev_type=VCI_USBCAN2, dev_idx=0, can_idx=0, baud_rate="125 Kbps"):
-        if not self.lib:
-            raise RuntimeError("ControlCAN DLL is not loaded.")
-        
+    def connect(self, dev_type, dev_idx, can_idx, baud_rate):
+        """Kết nối tới một thiết bị CAN cụ thể."""
+        log_debug(f"UI: Connecting to dev_type={dev_type}, idx={dev_idx}, can={can_idx}, baud={baud_rate}")
         self.dev_type = dev_type
         self.dev_idx = dev_idx
         self.can_idx = can_idx
         
-        # 1. Open Device
-        if self.lib.VCI_OpenDevice(self.dev_type, self.dev_idx, 0) != STATUS_OK:
-            raise Exception("Failed to open CAN device. Is it plugged in?")
-        
-        # 2. Init Channel
-        t0, t1 = BAUDRATE_MAP.get(baud_rate, (0x03, 0x1C)) # Default 125kbps
-        config = VCI_INIT_CONFIG(0x00000000, 0xFFFFFFFF, 0, 1, t0, t1, 0)
-        if self.lib.VCI_InitCAN(self.dev_type, self.dev_idx, self.can_idx, ctypes.byref(config)) != STATUS_OK:
-            self.lib.VCI_CloseDevice(self.dev_type, self.dev_idx)
-            raise Exception("Failed to initialize CAN channel.")
+        try:
+            # 1. Open Device
+            if self.lib.VCI_OpenDevice(self.dev_type, self.dev_idx, 0) != STATUS_OK:
+                return False, "Failed to open CAN device. Is it plugged in or used by another app?"
             
-        # 3. Start Channel
-        if self.lib.VCI_StartCAN(self.dev_type, self.dev_idx, self.can_idx) != STATUS_OK:
-            self.lib.VCI_CloseDevice(self.dev_type, self.dev_idx)
-            raise Exception("Failed to start CAN channel.")
+            # 2. Init Channel
+            t0, t1 = BAUDRATE_MAP.get(baud_rate, (0x03, 0x1C)) # Default 125kbps
+            config = VCI_INIT_CONFIG(0x00000000, 0xFFFFFFFF, 0, 1, t0, t1, 0)
+            if self.lib.VCI_InitCAN(self.dev_type, self.dev_idx, self.can_idx, ctypes.byref(config)) != STATUS_OK:
+                self.lib.VCI_CloseDevice(self.dev_type, self.dev_idx)
+                return False, "Failed to initialize CAN channel."
+                
+            # 3. Start Channel
+            if self.lib.VCI_StartCAN(self.dev_type, self.dev_idx, self.can_idx) != STATUS_OK:
+                self.lib.VCI_CloseDevice(self.dev_type, self.dev_idx)
+                return False, "Failed to start CAN channel."
+                
+            self.connected = True
             
-        self.connected = True
-        
-        # Start Receiver thread
-        self.rx_running = True
-        self.rx_thread = threading.Thread(target=self._rx_loop, daemon=True)
-        self.rx_thread.start()
+            # Start Receiver thread
+            self.rx_running = True
+            self.rx_thread = threading.Thread(target=self._rx_loop, daemon=True)
+            self.rx_thread.start()
+            return True, "Connected Successfully"
+        except Exception as e:
+            return False, str(e)
         
     def disconnect(self):
         self.rx_running = False
@@ -262,13 +269,13 @@ class AcePowerCANController:
         can_id = self.build_id(module_addr=module_addr)
         self.send_frame(can_id, data, "Request: Read Status")
 
-    def read_ac_input(self, module_addr):
+    def read_ac_vin(self, module_addr):
         """Request Read AC Line Voltage (Line AB)"""
         data = bytearray([0x12, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
         can_id = self.build_id(module_addr=module_addr)
         self.send_frame(can_id, data, "Request: Read AC Input (AB)")
 
-    def read_temperature(self, module_addr):
+    def read_temp(self, module_addr):
         """Request Read Inlet Temperature"""
         data = bytearray([0x12, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
         can_id = self.build_id(module_addr=module_addr)
@@ -284,45 +291,57 @@ class AcePowerCANController:
     def _rx_loop(self):
         buffer_size = 50
         vci_obj_array = (VCI_CAN_OBJ * buffer_size)()
+        error_count = 0
         
         while self.rx_running:
             if not self.connected:
                 time.sleep(0.1)
                 continue
                 
-            num_read = self.lib.VCI_Receive(self.dev_type, self.dev_idx, self.can_idx, ctypes.byref(vci_obj_array), buffer_size, 100)
-            if num_read > 0:
-                for i in range(num_read):
-                    frame = vci_obj_array[i]
-                    frame_id = frame.ID
-                    frame_data = list(frame.Data)[:frame.DataLen]
-                    
-                    # Notify Bus Monitor (all frames)
-                    if self.on_all_rx_callback:
-                        self.on_all_rx_callback(frame_id, frame_data, "Receive", frame.ExternFlag, frame.RemoteFlag)
-                    
-                    if len(frame_data) == 8:
-                        msg_code = frame_data[0]
-                        cmd_type = frame_data[1]
+            try:
+                num_read = self.lib.VCI_Receive(self.dev_type, self.dev_idx, self.can_idx, ctypes.byref(vci_obj_array), buffer_size, 100)
+                
+                if num_read > 0 and num_read < 0x7FFFFFFF:
+                    error_count = 0 
+                    for i in range(num_read):
+                        frame = vci_obj_array[i]
+                        frame_id = frame.ID
+                        frame_data = list(frame.Data)[:frame.DataLen]
                         
-                        # Check for 'Response' msg logic (Read resp = 0x13, Set resp = 0x11)
-                        if msg_code == 0x13: # Group 1, MsgType 3 (Read Data Resp)
-                            val = (frame_data[4] << 24) | (frame_data[5] << 16) | (frame_data[6] << 8) | frame_data[7]
-                            res_type = ""
-                            actual_val = 0
+                        if self.on_all_rx_callback:
+                            self.on_all_rx_callback(frame_id, frame_data, "Receive", frame.ExternFlag, frame.RemoteFlag)
+                        
+                        if len(frame_data) == 8:
+                            msg_code = frame_data[0]
+                            cmd_type = frame_data[1]
                             
-                            if cmd_type == 0x00: # Voltage
-                                res_type = "VOLTAGE"
-                                actual_val = val / 1000.0 # V
-                            elif cmd_type == 0x01: # Current
-                                res_type = "CURRENT"
-                                actual_val = val / 1000.0 # A
-                            elif cmd_type == 0x08: # Status
-                                res_type = "STATUS"
-                                actual_val = val
+                            if msg_code == 0x13: 
+                                val = (frame_data[4] << 24) | (frame_data[5] << 16) | (frame_data[6] << 8) | frame_data[7]
+                                res_type = ""
+                                actual_val = 0
                                 
-                            if self.on_data_received_callback:
-                                self.on_data_received_callback(res_type, actual_val)
-                                
-            else:
-                time.sleep(0.01) # Avoid cpu hog
+                                if cmd_type == 0x00: res_type = "VOLTAGE"; actual_val = val / 1000.0
+                                elif cmd_type == 0x01: res_type = "CURRENT"; actual_val = val / 1000.0
+                                elif cmd_type == 0x08: res_type = "STATUS"; actual_val = val
+                                elif cmd_type == 0x14: res_type = "AC_VIN"; actual_val = val / 1000.0
+                                elif cmd_type == 0x1E: res_type = "TEMP"; actual_val = val 
+                                elif 120 <= cmd_type <= 122: res_type = "FAN"; actual_val = val
+                                    
+                                if res_type and self.on_data_received_callback:
+                                    self.on_data_received_callback(res_type, actual_val)
+                                    
+                elif num_read == -1 or num_read >= 0x7FFFFFFF:
+                    # Possible error or device disconnected
+                    error_count += 1
+                    if error_count > 10:
+                        print(f"CAN Receive Error spammed. Disconnecting to prevent crash.")
+                        self.connected = False
+                        if self.on_all_rx_callback:
+                            self.on_all_rx_callback(0, [], "Error: Connection Lost", 0, 0)
+                        break
+                    time.sleep(0.1)
+                else:
+                    time.sleep(0.01)
+            except Exception as e:
+                print(f"RX Loop Exception: {e}")
+                time.sleep(0.5)

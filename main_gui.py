@@ -1,13 +1,15 @@
+# -*- coding: utf-8 -*-
 import sys
+import os
 import re
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QMessageBox,
                              QGridLayout, QFrame, QTableWidget, QTableWidgetItem, QHeaderView,
-                             QAbstractItemView, QTabWidget, QSpinBox, QCheckBox, QDoubleSpinBox)
+                             QAbstractItemView, QTabWidget, QSpinBox, QCheckBox, QDoubleSpinBox, QTextEdit)
 from PyQt5.QtCore import QTimer, pyqtSignal, pyqtSlot, Qt, QDateTime
 from PyQt5.QtGui import QFont, QColor, QBrush, QIcon
 
-from acepower_can import AcePowerCANController, BAUDRATE_MAP, DEVICE_TYPES
+from acepower_can import AcePowerCANController, BAUDRATE_MAP, DEVICE_TYPES, resource_path, log_debug
 
 # Dữ liệu phục vụ tab tra cứu
 COMMAND_DATA = [
@@ -42,10 +44,18 @@ class AcePowerControllerGUI(QMainWindow):
         self.poll_timer = QTimer()
         self.poll_timer.timeout.connect(self.poll_module)
         self.poll_timer.setInterval(1000)
+        
+        # Initial UI state
+        # (Auto-scan removed to prevent startup crashes on some systems)
 
     def init_ui(self):
         self.setWindowTitle('AcePower AB-U2T - Ultimate Controller')
         self.resize(1250, 900)
+        
+        # Set Window Icon
+        icon_path = resource_path("charging-station.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
         
         # Premium Modern Style (Improved White Theme)
         self.setStyleSheet("""
@@ -116,6 +126,7 @@ class AcePowerControllerGUI(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_control_tab(), "ACEPOWER CONTROL")
         self.tabs.addTab(self.create_can_tool_tab(), "BUS ANALYZER")
+        self.tabs.addTab(self.create_protocol_docs_tab(), "PROTOCOL DOCS (U2T-A030A-AG)")
         self.tabs.addTab(self.create_ref_tab(), "COMMAND REFERENCE")
         layout.addWidget(self.tabs)
 
@@ -127,103 +138,132 @@ class AcePowerControllerGUI(QMainWindow):
         self._toggle_control_state(False)
 
     def create_control_tab(self):
-        tab = QWidget(); l = QVBoxLayout(tab)
-        l.setContentsMargins(10, 10, 10, 10)
+        tab = QWidget(); main_l = QVBoxLayout(tab)
+        main_l.setContentsMargins(15, 15, 15, 15)
+        main_l.setSpacing(10)
         
-        # Module Info Row
+        # --- Row 1: Module Selector ---
         info_row = QHBoxLayout()
-        info_row.addWidget(QLabel("Mục tiêu Điều khiển:"))
+        info_row.addWidget(QLabel("<b>ĐANG ĐIỀU KHIỂN:</b>"))
         self.combo_module_addr = QComboBox()
         self.combo_module_addr.addItem("0 (TẤT CẢ MODULE - Broadcast)")
-        self.combo_module_addr.addItems([str(i) for i in range(1, 32)])
-        self.combo_module_addr.setFixedWidth(250)
+        self.combo_module_addr.addItems([str(i) for i in range(1, 61)])
+        self.combo_module_addr.setFixedWidth(280)
+        self.combo_module_addr.setStyleSheet("font-size: 13px; font-weight: bold; height: 30px;")
         info_row.addWidget(self.combo_module_addr)
         info_row.addStretch()
-        l.addLayout(info_row)
+        main_l.addLayout(info_row)
 
-        mid = QHBoxLayout(); mid.setSpacing(15)
+        # --- Row 2: The Main Dashboard (3 Columns) ---
+        dash_layout = QHBoxLayout()
+        dash_layout.setSpacing(15)
         
-        # 1. Control Panel
-        g_ctrl = QGroupBox("CÀI ĐẶT GIÁ TRỊ MỤC TIÊU")
+        # --- COL 1: CONTROL PANEL ---
+        g_ctrl = QGroupBox("CÀI ĐẶT MỤC TIÊU")
         l_ctrl = QVBoxLayout()
+        l_ctrl.setSpacing(12)
         
-        # Grid for better alignment
         grid_inputs = QGridLayout()
+        grid_inputs.setVerticalSpacing(15)
         
-        # Voltage Input
-        grid_inputs.addWidget(QLabel("⚡ ĐIỆN ÁP (V):"), 0, 0)
+        # Voltage
+        grid_inputs.addWidget(QLabel("⚡ ĐIỆN ÁP SET (V):"), 0, 0)
         self.spin_set_v = QDoubleSpinBox()
-        self.spin_set_v.setRange(0.00, 1000.00)
-        self.spin_set_v.setValue(100.00)
-        self.spin_set_v.setSuffix(" V")
-        self.spin_set_v.setDecimals(2)
-        self.spin_set_v.setFixedHeight(40)
-        self.spin_set_v.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        self.spin_set_v.setRange(0.00, 1000.00); self.spin_set_v.setValue(100.00)
+        self.spin_set_v.setFixedHeight(45); self.spin_set_v.setFont(QFont("Segoe UI", 12, QFont.Bold))
         grid_inputs.addWidget(self.spin_set_v, 0, 1)
-        
-        btn_v = QPushButton("SET V"); btn_v.setFixedWidth(80); btn_v.setFixedHeight(40)
-        btn_v.clicked.connect(self.action_set_voltage)
-        btn_v.setStyleSheet("background: #0d6efd; color: white; border: none; font-weight: bold;")
+        btn_v = QPushButton("SET V"); btn_v.setFixedSize(80, 45); btn_v.clicked.connect(self.action_set_voltage)
+        btn_v.setStyleSheet("background: #0d6efd; color: white; font-weight: bold; border-radius: 6px;")
         grid_inputs.addWidget(btn_v, 0, 2)
         
-        # Current Input
-        grid_inputs.addWidget(QLabel("🌡 DÒNG ĐIỆN (A):"), 1, 0)
+        # Current
+        grid_inputs.addWidget(QLabel("🌡 DÒNG ĐIỆN SET (A):"), 1, 0)
         self.spin_set_i = QDoubleSpinBox()
-        self.spin_set_i.setRange(0.00, 125.00)
-        self.spin_set_i.setValue(10.00)
-        self.spin_set_i.setSuffix(" A")
-        self.spin_set_i.setDecimals(2)
-        self.spin_set_i.setFixedHeight(40)
-        self.spin_set_i.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        self.spin_set_i.setRange(0.00, 125.00); self.spin_set_i.setValue(10.00)
+        self.spin_set_i.setFixedHeight(45); self.spin_set_i.setFont(QFont("Segoe UI", 12, QFont.Bold))
         grid_inputs.addWidget(self.spin_set_i, 1, 1)
-        
-        btn_i = QPushButton("SET I"); btn_i.setFixedWidth(80); btn_i.setFixedHeight(40)
-        btn_i.clicked.connect(self.action_set_current)
-        btn_i.setStyleSheet("background: #0d6efd; color: white; border: none; font-weight: bold;")
+        btn_i = QPushButton("SET I"); btn_i.setFixedSize(80, 45); btn_i.clicked.connect(self.action_set_current)
+        btn_i.setStyleSheet("background: #0d6efd; color: white; font-weight: bold; border-radius: 6px;")
         grid_inputs.addWidget(btn_i, 1, 2)
-        
         l_ctrl.addLayout(grid_inputs)
         
-        l_ctrl.addSpacing(20)
+        l_ctrl.addStretch()
+        
         pwr_box = QHBoxLayout()
-        self.btn_power_on = QPushButton("⚡ POWER ON"); self.btn_power_on.setFixedHeight(50)
-        self.btn_power_on.setStyleSheet("background: #198754; color: white; font-size: 16px; border: none;")
+        self.btn_power_on = QPushButton("⚡ POWER ON"); self.btn_power_on.setFixedHeight(60)
+        self.btn_power_on.setStyleSheet("background: #198754; color: white; font-size: 16px; font-weight: bold;")
         self.btn_power_on.clicked.connect(self.action_power_on)
-        self.btn_power_off = QPushButton("⛔ POWER OFF"); self.btn_power_off.setFixedHeight(50)
-        self.btn_power_off.setStyleSheet("background: #dc3545; color: white; font-size: 16px; border: none;")
+        self.btn_power_off = QPushButton("⛔ POWER OFF"); self.btn_power_off.setFixedHeight(60)
+        self.btn_power_off.setStyleSheet("background: #dc3545; color: white; font-size: 16px; font-weight: bold;")
         self.btn_power_off.clicked.connect(self.action_power_off)
-        pwr_box.addWidget(self.btn_power_on, 2)
-        pwr_box.addWidget(self.btn_power_off, 1)
+        pwr_box.addWidget(self.btn_power_on, 2); pwr_box.addWidget(self.btn_power_off, 1)
         l_ctrl.addLayout(pwr_box)
         g_ctrl.setLayout(l_ctrl)
-        mid.addWidget(g_ctrl, 1)
+        dash_layout.addWidget(g_ctrl, 3)
         
-        # 2. Monitoring Panel
-        g_mon = QGroupBox("TRẠNG THÁI THỰC TẾ")
+        # --- COL 2: PRIMARY MONITOR (BIG GAUGES) ---
+        g_mon = QGroupBox("GIÁ TRỊ ĐẦU RA (REAL-TIME)")
         l_mon = QVBoxLayout()
         
-        f_v = QFrame(); f_v.setStyleSheet("background: #f0f7ff; border: 2px solid #cfe2ff; border-radius: 12px;")
-        lv = QVBoxLayout(f_v); lv.addWidget(QLabel("⚡ VOLTAGE OUTPUT"), alignment=Qt.AlignCenter)
-        self.lbl_v = QLabel("-- V"); self.lbl_v.setFont(QFont("Digital-7", 50, QFont.Bold))
-        self.lbl_v.setStyleSheet("color: #084298"); lv.addWidget(self.lbl_v, alignment=Qt.AlignCenter)
+        # Stylish Voltage Frame
+        f_v = QFrame(); f_v.setStyleSheet("background: #000; border: 2px solid #555; border-radius: 10px;")
+        lv = QVBoxLayout(f_v); lv.addWidget(QLabel("<font color='white'>⚡ VOLTAGE OUTPUT</font>"), alignment=Qt.AlignCenter)
+        self.lbl_v = QLabel("0.00 V"); self.lbl_v.setFont(QFont("Digital-7", 60, QFont.Bold))
+        self.lbl_v.setStyleSheet("color: #00ff00;"); lv.addWidget(self.lbl_v, alignment=Qt.AlignCenter)
         l_mon.addWidget(f_v)
         
-        f_i = QFrame(); f_i.setStyleSheet("background: #fff8eb; border: 2px solid #ffe69c; border-radius: 12px;")
-        li = QVBoxLayout(f_i); li.addWidget(QLabel("🌡 CURRENT OUTPUT"), alignment=Qt.AlignCenter)
-        self.lbl_i = QLabel("-- A"); self.lbl_i.setFont(QFont("Digital-7", 50, QFont.Bold))
-        self.lbl_i.setStyleSheet("color: #997404"); li.addWidget(self.lbl_i, alignment=Qt.AlignCenter)
+        # Stylish Current Frame
+        f_i = QFrame(); f_i.setStyleSheet("background: #000; border: 2px solid #555; border-radius: 10px;")
+        li = QVBoxLayout(f_i); li.addWidget(QLabel("<font color='white'>🌡 CURRENT OUTPUT</font>"), alignment=Qt.AlignCenter)
+        self.lbl_i = QLabel("0.00 A"); self.lbl_i.setFont(QFont("Digital-7", 60, QFont.Bold))
+        self.lbl_i.setStyleSheet("color: #ffcc00;"); li.addWidget(self.lbl_i, alignment=Qt.AlignCenter)
         l_mon.addWidget(f_i)
         
         g_mon.setLayout(l_mon)
-        mid.addWidget(g_mon, 1)
-        l.addLayout(mid)
+        dash_layout.addWidget(g_mon, 4)
+        
+        # --- COL 3: MODULE DETAILS & STATUS LEDS ---
+        g_status = QGroupBox("CHI TIẾT & TRẠNG THÁI")
+        l_st = QVBoxLayout()
+        l_st.setSpacing(8)
+        
+        # Secondary Data (AC, Temp, Fan)
+        sub_grid = QGridLayout()
+        sub_grid.addWidget(QLabel("AC Input:"), 0, 0); self.lbl_ac_vin = QLabel("--- V"); self.lbl_ac_vin.setStyleSheet("font-weight: bold; color: #0d6efd;"); sub_grid.addWidget(self.lbl_ac_vin, 0, 1)
+        sub_grid.addWidget(QLabel("Temp:"), 1, 0); self.lbl_temp = QLabel("--- °C"); self.lbl_temp.setStyleSheet("font-weight: bold; color: #dc3545;"); sub_grid.addWidget(self.lbl_temp, 1, 1)
+        sub_grid.addWidget(QLabel("Fan:"), 2, 0); self.lbl_fan = QLabel("--- RPM"); self.lbl_fan.setStyleSheet("font-weight: bold; color: #198754;"); sub_grid.addWidget(self.lbl_fan, 2, 1)
+        l_st.addLayout(sub_grid)
+        
+        l_st.addSpacing(10)
+        l_st.addWidget(QLabel("<b>CẢNH BÁO LỖI:</b>"))
+        
+        # LED Indicators
+        lay, self.led_comm = self._create_led("Giao tiếp CAN"); l_st.addLayout(lay)
+        lay, self.led_ac = self._create_led("Lỗi AC Input"); l_st.addLayout(lay)
+        lay, self.led_dc = self._create_led("Lỗi DC Output"); l_st.addLayout(lay)
+        lay, self.led_tem = self._create_led("Quá nhiệt (OT)"); l_st.addLayout(lay)
+        lay, self.led_fan = self._create_led("Lỗi Quạt (Fan)"); l_st.addLayout(lay)
+        
+        l_st.addStretch()
+        g_status.setLayout(l_st)
+        dash_layout.addWidget(g_status, 3)
+        
+        main_l.addLayout(dash_layout)
 
-        # 3. Action History
-        l.addWidget(QLabel("<b>NHẬT KÝ LỆNH GỬI ĐI:</b>"))
+        # --- Row 3: Action History (Compact) ---
+        main_l.addWidget(QLabel("<b>NHẬT KÝ LỆNH VẬN HÀNH:</b>"))
         self.tab_mini_log = QTableWidget(0, 3); self.tab_mini_log.setHorizontalHeaderLabels(["Thời gian", "Frame ID", "Mô tả lệnh"])
-        self.tab_mini_log.horizontalHeader().setStretchLastSection(True); self.tab_mini_log.setMinimumHeight(150)
-        l.addWidget(self.tab_mini_log)
+        self.tab_mini_log.horizontalHeader().setStretchLastSection(True); self.tab_mini_log.setMaximumHeight(200)
+        main_l.addWidget(self.tab_mini_log)
+        
         return tab
+
+    def _create_led(self, text):
+        layout = QHBoxLayout()
+        led = QLabel(); led.setFixedSize(16, 16); led.setStyleSheet("background: #ced4da; border-radius: 8px; border: 1px solid #adb5bd;")
+        label = QLabel(text); label.setStyleSheet("font-size: 11px;")
+        layout.addWidget(led); layout.addWidget(label); layout.addStretch()
+        return (layout, led)
 
     def create_can_tool_tab(self):
         tab = QWidget(); l = QVBoxLayout(tab)
@@ -250,6 +290,80 @@ class AcePowerControllerGUI(QMainWindow):
         self.table_bus.setHorizontalHeaderLabels(["Index", "Time", "Ch", "Dir", "Frame ID", "Type", "Format", "DLC", "Data Hex"])
         self.table_bus.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents); self.table_bus.horizontalHeader().setStretchLastSection(True)
         l.addWidget(self.table_bus)
+        return tab
+
+    def create_protocol_docs_tab(self):
+        tab = QWidget(); l = QVBoxLayout(tab)
+        l.setContentsMargins(15, 15, 15, 15)
+        
+        header = QLabel("TÀI LIỆU GIAO THỨC ACEPOWER U2T-A030A-AG (30KW)")
+        header.setStyleSheet("font-size: 18px; color: #004085; font-weight: bold; margin-bottom: 10px;")
+        l.addWidget(header)
+        
+        info = QTextEdit()
+        info.setReadOnly(True)
+        info.setHtml("""
+            <h3>1. Cấu hình CAN Bus</h3>
+            <ul>
+                <li><b>Baudrate:</b> 125 Kbps (Mặc định)</li>
+                <li><b>Frame Type:</b> Extended Frame (29-bit ID)</li>
+            </ul>
+            
+            <h3>2. Cấu trúc CAN ID (29-bit)</h3>
+            <table border="1" style="border-collapse: collapse; width: 100%;">
+                <tr style="background-color: #f2f2f2;">
+                    <th>Bits [28:25]</th>
+                    <th>Bits [24:21]</th>
+                    <th>Bits [20:14]</th>
+                    <th>Bits [13:0]</th>
+                </tr>
+                <tr>
+                    <td><b>Protocol ID (0x01)</b></td>
+                    <td><b>Monitor Address</b></td>
+                    <td><b>Module Address</b></td>
+                    <td><b>Group Address / Reserved</b></td>
+                </tr>
+            </table>
+            <p><i>Ví dụ: 0x02204000 (Monitor 1 -> Module 1)</i></p>
+
+            <h3>3. Danh sách câu lệnh (Data Payload)</h3>
+            <table border="1" style="border-collapse: collapse; width: 100%;">
+                <tr style="background-color: #f2f2f2;">
+                    <th>Byte 0 (Msg Type)</th>
+                    <th>Byte 1 (Command)</th>
+                    <th>Mô tả</th>
+                    <th>Công thức dữ liệu</th>
+                </tr>
+                <tr>
+                    <td>0x10</td><td>0x02</td><td>Cài đặt điện áp</td><td>Dữ liệu 4 byte (mV), Big-endian</td>
+                </tr>
+                <tr>
+                    <td>0x10</td><td>0x03</td><td>Cài đặt dòng điện</td><td>Dữ liệu 4 byte (mA), Big-endian</td>
+                </tr>
+                <tr>
+                    <td>0x10</td><td>0x04</td><td>Bật/Tắt nguồn</td><td>B7=0: ON, B7=1: OFF</td>
+                </tr>
+                <tr>
+                    <td>0x12</td><td>0x00</td><td>Đọc điện áp đầu ra</td><td>Phản hồi 0x13 0x00 (mV)</td>
+                </tr>
+                <tr>
+                    <td>0x12</td><td>0x01</td><td>Đọc dòng điện đầu ra</td><td>Phản hồi 0x13 0x01 (mA)</td>
+                </tr>
+                <tr>
+                    <td>0x12</td><td>0x08</td><td>Đọc trạng thái lỗi</td><td>Phản hồi mã lỗi Bitmask</td>
+                </tr>
+            </table>
+
+            <h3>4. Mã lỗi Status (Command 0x08)</h3>
+            <ul>
+                <li><b>Bit 0:</b> AC Input Fault (Lỗi điện áp xoay chiều)</li>
+                <li><b>Bit 1:</b> DC Output Fault (Lỗi điện áp một chiều)</li>
+                <li><b>Bit 2:</b> Over Temperature (Quá nhiệt)</li>
+                <li><b>Bit 9:</b> Fan Fault (Lỗi quạt)</li>
+                <li><b>Bit 25:</b> Module Power State (0: ON, 1: OFF)</li>
+            </ul>
+        """)
+        l.addWidget(info)
         return tab
 
     def create_ref_tab(self):
@@ -284,29 +398,39 @@ class AcePowerControllerGUI(QMainWindow):
         except Exception as e: QMessageBox.warning(self, "Lỗi Input", f"Sai định dạng Hex: {e}")
 
     def on_scan_clicked(self):
-        self.combo_device.clear(); self.scanned_devices = []
+        log_debug("UI: Scan Button Clicked")
         dt = DEVICE_TYPES.get(self.combo_type.currentText(), 4)
         try:
             devs = self.can_ctrl.scan_devices(dt)
             if devs:
+                log_debug(f"UI: Found {len(devs)} devices")
+                self.combo_device.clear() # Only clear if we have results to show
                 self.scanned_devices = devs
                 for d in devs: self.combo_device.addItem(d['display'])
                 self.btn_connect.setEnabled(True)
                 self.combo_device.setStyleSheet("background: #e7f1ff;")
-            else: QMessageBox.warning(self, "Không thấy", "Không phát hiện USB-CAN Adapter!")
-        except Exception as e: QMessageBox.critical(self, "Lỗi Quét", str(e))
+            else:
+                log_debug("UI: No devices found")
+                self.btn_connect.setEnabled(False)
+                # We DON'T clear the list here to avoid IndexErrors in other parts of UI
+                QMessageBox.warning(self, "Không tìm thấy thiết bị", "Không phát hiện USB-CAN Adapter nào đang kết nối. Hãy kiểm tra cáp và thử lại.")
+        except Exception as e:
+            log_debug(f"UI: Scan Error: {e}")
+            QMessageBox.warning(self, "Lỗi Quét", f"Không thể quét thiết bị: {e}")
 
     def on_connect_clicked(self):
         if not self.can_ctrl.connected:
             sel = self.combo_device.currentIndex()
             if sel < 0: return
             dev = self.scanned_devices[sel]; dt = DEVICE_TYPES.get(self.combo_type.currentText(), 4)
-            bd = self.combo_baud.currentText(); ch = int(self.combo_type.currentText().split("(")[1][5]) # Quick dirty extract
-            try:
-                self.can_ctrl.connect(dt, dev['index'], 0, bd) 
+            bd = self.combo_baud.currentText()
+            
+            ok, msg = self.can_ctrl.connect(dt, dev['index'], 0, bd)
+            if ok:
                 self.btn_connect.setText("NGẮT KẾT NỐI ❌"); self.btn_connect.setStyleSheet("background: #dc3545; color: white;")
                 self._ui_lock(True); self._toggle_control_state(True); self.poll_timer.start()
-            except Exception as e: QMessageBox.critical(self, "Lỗi Kết Nối", str(e))
+            else:
+                QMessageBox.warning(self, "Lỗi Kết Nối", msg)
         else:
             self.poll_timer.stop(); self.can_ctrl.disconnect()
             self.btn_connect.setText("KẾT NỐI ⚡"); self.btn_connect.setStyleSheet("background: #198754; color: white;")
@@ -351,8 +475,13 @@ class AcePowerControllerGUI(QMainWindow):
             try:
                 addr_str = self.combo_module_addr.currentText()
                 addr = int(re.search(r'\d+', addr_str).group())
-                if addr == 0: return # Không poll tự động khi ở chế độ Broadcast
-                self.can_ctrl.read_voltage(addr); self.can_ctrl.read_current(addr)
+                if addr == 0: return 
+                # Poll all parameters
+                self.can_ctrl.read_voltage(addr)
+                self.can_ctrl.read_current(addr)
+                self.can_ctrl.read_status(addr)
+                self.can_ctrl.read_ac_vin(addr)
+                self.can_ctrl.read_temp(addr)
             except: pass
 
     def _on_can_data(self, t, v): self.signal_data_received.emit(t, v)
@@ -391,6 +520,23 @@ class AcePowerControllerGUI(QMainWindow):
     def update_ui_from_can(self, t, v):
         if t == "VOLTAGE": self.lbl_v.setText(f"{v:.2f} V")
         elif t == "CURRENT": self.lbl_i.setText(f"{v:.2f} A")
+        elif t == "AC_VIN": self.lbl_ac_vin.setText(f"{v:.2f} V")
+        elif t == "TEMP": self.lbl_temp.setText(f"{v/100:.1f} °C") # Giả định mC
+        elif t == "FAN": self.lbl_fan.setText(f"{int(v)} RPM")
+        elif t == "STATUS":
+            st = int(v)
+            # Update LEDs: Bit 0: AC, Bit 1: DC, Bit 2: OT, Bit 9: Fan
+            self._set_led(self.led_ac, (st >> 0) & 1)
+            self._set_led(self.led_dc, (st >> 1) & 1)
+            self._set_led(self.led_tem, (st >> 2) & 1)
+            self._set_led(self.led_fan, (st >> 9) & 1)
+            # Power LED (Bit 25)
+            self._set_led(self.led_comm, 0, "green") # Giao tiếp OK
+
+    def _set_led(self, led_widget, error, forced_color=None):
+        if forced_color: color = forced_color
+        else: color = "red" if error else "green"
+        led_widget.setStyleSheet(f"background: {color}; border-radius: 8px; border: 1px solid #000;")
 
     def closeEvent(self, event): self.can_ctrl.disconnect(); event.accept()
 
