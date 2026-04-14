@@ -1,0 +1,275 @@
+[项目窗口数据(_D)]
+ProjectExplorer.ClassicPosition[String] = "53,77,606,462"
+
+[AB_Cache_{C6544987-9301-4758-9694-860CCD5DFD8E}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "b1d57ba66092e007a44d214c10416217"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/波特率侦测.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/波特率侦测.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/波特率侦测.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{5E1FE256-032B-4408-AEB2-0AFB8C701117}"
+Cache_GenGUID[1][String] = "{358B6ED8-9191-4515-BF70-ACA04C281014}"
+Cache_GenGUID[2][String] = "{F2185214-7DC7-4CDC-9859-81E1477AA22F}"
+Cache_GenGUID[3][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{61DB6AAF-B153-466C-B8EB-2908E5D3B52E}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "b1d57ba66092e007a44d214c10416217"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/波特率侦测.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/波特率侦测.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/波特率侦测.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{5E1FE256-032B-4408-AEB2-0AFB8C701117}"
+Cache_GenGUID[1][String] = "{358B6ED8-9191-4515-BF70-ACA04C281014}"
+Cache_GenGUID[2][String] = "{F2185214-7DC7-4CDC-9859-81E1477AA22F}"
+Cache_GenGUID[3][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{BAD947D7-31F5-4DFC-9BC3-7ABB5CA687F3}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "2845ebe2468849bfbd01117814f192fa"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.exe"
+Cache_GenFile[1][Path] Line0001 = "/C/Documents and Settings/Administrator/桌面"
+Cache_GenFile[1][Path] Line0002 = "/BOM.aliases"
+Cache_GenFile[2][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.ini"
+Cache_GenFile[3][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{EED9887B-8AEA-4157-A83C-5B20372BD384}"
+Cache_GenGUID[1][String] = "{B51D7483-1351-4CEC-95AE-2233189C1824}"
+Cache_GenGUID[2][String] = "{D4D80EB7-4247-46DB-926B-DF310F9A1B61}"
+Cache_GenGUID[3][String] = ""
+Cache_OutputDir[Path] = "/C/Documents and Settings/Administrator/桌面"
+
+[AB_Cache_{F38E4A06-C740-4629-870C-A7C6C01EFBD1}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "2845ebe2468849bfbd01117814f192fa"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.exe"
+Cache_GenFile[1][Path] Line0001 = "/C/Documents and Settings/Administrator/桌面"
+Cache_GenFile[1][Path] Line0002 = "/BOM.aliases"
+Cache_GenFile[2][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.ini"
+Cache_GenFile[3][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{EED9887B-8AEA-4157-A83C-5B20372BD384}"
+Cache_GenGUID[1][String] = "{B51D7483-1351-4CEC-95AE-2233189C1824}"
+Cache_GenGUID[2][String] = "{D4D80EB7-4247-46DB-926B-DF310F9A1B61}"
+Cache_GenGUID[3][String] = ""
+Cache_OutputDir[Path] = "/C/Documents and Settings/Administrator/桌面"
+
+[AB_Cache_{A691B4BB-D46B-43C5-B271-C068AAD63999}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "2845ebe2468849bfbd01117814f192fa"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.exe"
+Cache_GenFile[1][Path] Line0001 = "/C/Documents and Settings/Administrator/桌面"
+Cache_GenFile[1][Path] Line0002 = "/BOM.aliases"
+Cache_GenFile[2][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.ini"
+Cache_GenFile[3][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{40409EAA-3192-49D1-8AB5-0084E8A600B3}"
+Cache_GenGUID[1][String] = "{D4C6D869-9406-4E7B-AA80-EC4FA628C7D8}"
+Cache_GenGUID[2][String] = "{49AB7411-0F8E-4A19-96C7-15787805CE30}"
+Cache_GenGUID[3][String] = ""
+Cache_OutputDir[Path] = "/C/Documents and Settings/Administrator/桌面"
+
+[AB_Cache_{2DDC15EB-C2E5-4868-A32A-4E1CAA2B38E6}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "2845ebe2468849bfbd01117814f192fa"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.exe"
+Cache_GenFile[1][Path] Line0001 = "/C/Documents and Settings/Administrator/桌面"
+Cache_GenFile[1][Path] Line0002 = "/BOM.aliases"
+Cache_GenFile[2][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.ini"
+Cache_GenFile[3][Path] = "/C/Documents and Settings/Administrator/桌面/BOM.tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{40409EAA-3192-49D1-8AB5-0084E8A600B3}"
+Cache_GenGUID[1][String] = "{D4C6D869-9406-4E7B-AA80-EC4FA628C7D8}"
+Cache_GenGUID[2][String] = "{49AB7411-0F8E-4A19-96C7-15787805CE30}"
+Cache_GenGUID[3][String] = ""
+Cache_OutputDir[Path] = "/C/Documents and Settings/Administrator/桌面"
+
+[AB_Cache_{46F15994-8CE5-4F50-A33B-3FD75FEAEB7C}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "45ce1ca32f977bbe1b7839be26f674f6"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/reboot(no SSE).exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/reboot(no SSE).aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/reboot(no SSE).ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/reboot(no SSE).tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{F4CC4985-3D35-4CD6-9414-A4B2C1C9C039}"
+Cache_GenGUID[1][String] = "{40302D4A-8097-4A14-BF18-790EF7BE1F7A}"
+Cache_GenGUID[2][String] = "{DCAB04C2-D7AA-43C2-A525-559E5506E6B8}"
+Cache_GenGUID[3][String] = "{77DDA1E7-6F73-491A-ABC7-2D6C1BEDA5A3}"
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{76AD1F49-5387-4BDC-AC9B-8923F16B6164}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "45ce1ca32f977bbe1b7839be26f674f6"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/reboot(no SSE).exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/reboot(no SSE).aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/reboot(no SSE).ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/reboot(no SSE).tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{F4CC4985-3D35-4CD6-9414-A4B2C1C9C039}"
+Cache_GenGUID[1][String] = "{40302D4A-8097-4A14-BF18-790EF7BE1F7A}"
+Cache_GenGUID[2][String] = "{DCAB04C2-D7AA-43C2-A525-559E5506E6B8}"
+Cache_GenGUID[3][String] = "{77DDA1E7-6F73-491A-ABC7-2D6C1BEDA5A3}"
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{86096899-E270-4A09-9A00-864412CFE9A0}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "c63f1d2802a1e6932d2c4e02e62bb998"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/reboot.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/reboot.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/reboot.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/reboot.tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{138D708B-3FA2-4CEA-AB9A-9DFC205EB43B}"
+Cache_GenGUID[1][String] = "{88DB6FE5-9BF2-46EC-A4DC-77BDF8E6A971}"
+Cache_GenGUID[2][String] = "{BC3ABD23-B79E-45DF-B78F-48B09AB0A991}"
+Cache_GenGUID[3][String] = "{99589890-16D9-40AA-8D6C-C7436F773C21}"
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{E92475CE-AA4E-42EB-B2F2-3C2725D8F105}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "c63f1d2802a1e6932d2c4e02e62bb998"
+Cache_GenFile_Count[Integer] = 4
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/reboot.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/reboot.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/reboot.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/reboot.tlb"
+Cache_GenGUID_Count[Integer] = 4
+Cache_GenGUID[0][String] = "{138D708B-3FA2-4CEA-AB9A-9DFC205EB43B}"
+Cache_GenGUID[1][String] = "{88DB6FE5-9BF2-46EC-A4DC-77BDF8E6A971}"
+Cache_GenGUID[2][String] = "{BC3ABD23-B79E-45DF-B78F-48B09AB0A991}"
+Cache_GenGUID[3][String] = "{99589890-16D9-40AA-8D6C-C7436F773C21}"
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{98E0BFB9-08BF-4C85-80A5-4A3FCE37C283}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "c63f1d2802a1e6932d2c4e02e62bb998"
+Cache_GenFile_Count[Integer] = 5
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/BR Detect.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/BR Detect.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/BR Detect.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/BR Detect.tlb"
+Cache_GenFile[4][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 5
+Cache_GenGUID[0][String] = "{35C27DB3-0A8A-4B34-85F1-AFF2A7B0A081}"
+Cache_GenGUID[1][String] = "{CAB00621-E626-4097-B989-4A3E9F0196F7}"
+Cache_GenGUID[2][String] = "{6A4EB32F-5535-4BE3-AC4D-6A21FFC2D0BF}"
+Cache_GenGUID[3][String] = "{F9A4D016-D26C-4EC9-9CC9-9D296DDE74EF}"
+Cache_GenGUID[4][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{B78CAF70-5F68-4241-8C26-F8B86BC8616B}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "c63f1d2802a1e6932d2c4e02e62bb998"
+Cache_GenFile_Count[Integer] = 5
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/BR Detect.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/BR Detect.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/BR Detect.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/BR Detect.tlb"
+Cache_GenFile[4][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 5
+Cache_GenGUID[0][String] = "{35C27DB3-0A8A-4B34-85F1-AFF2A7B0A081}"
+Cache_GenGUID[1][String] = "{CAB00621-E626-4097-B989-4A3E9F0196F7}"
+Cache_GenGUID[2][String] = "{6A4EB32F-5535-4BE3-AC4D-6A21FFC2D0BF}"
+Cache_GenGUID[3][String] = "{F9A4D016-D26C-4EC9-9CC9-9D296DDE74EF}"
+Cache_GenGUID[4][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{D038D695-4557-4EE1-B01D-6DC9C984181F}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "2c331041201bb235f80d6d0ed361efa6"
+Cache_GenFile_Count[Integer] = 5
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).tlb"
+Cache_GenFile[4][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 5
+Cache_GenGUID[0][String] = "{6E461B7F-9F8A-4635-B7DB-F790BE7352B2}"
+Cache_GenGUID[1][String] = "{5B940CD6-C4DD-413B-AA58-7FF7C441F610}"
+Cache_GenGUID[2][String] = "{63E73D79-A131-4166-9BAC-7C27DA9A6729}"
+Cache_GenGUID[3][String] = "{0AA47CF1-096F-41AA-AC49-9108E1359E49}"
+Cache_GenGUID[4][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{E34403AB-7DF6-413B-BF0D-8D1F06FCF9F7}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "2c331041201bb235f80d6d0ed361efa6"
+Cache_GenFile_Count[Integer] = 5
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool(no SSE).tlb"
+Cache_GenFile[4][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 5
+Cache_GenGUID[0][String] = "{6E461B7F-9F8A-4635-B7DB-F790BE7352B2}"
+Cache_GenGUID[1][String] = "{5B940CD6-C4DD-413B-AA58-7FF7C441F610}"
+Cache_GenGUID[2][String] = "{63E73D79-A131-4166-9BAC-7C27DA9A6729}"
+Cache_GenGUID[3][String] = "{0AA47CF1-096F-41AA-AC49-9108E1359E49}"
+Cache_GenGUID[4][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{0EDE9E31-99D9-4C7C-8A9B-BCF5398CD516}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "f789a5b0734ac992fe03c83fb63d5050"
+Cache_GenFile_Count[Integer] = 5
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.tlb"
+Cache_GenFile[4][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 5
+Cache_GenGUID[0][String] = "{1C1105DE-0E8D-4C8B-970F-BC946FE5A279}"
+Cache_GenGUID[1][String] = "{AF222E1B-A591-4567-9F2E-E456761CE97F}"
+Cache_GenGUID[2][String] = "{A5AD3E97-4D30-4B33-BA9E-903109C30985}"
+Cache_GenGUID[3][String] = "{5E688CE1-1EBF-4C03-BB5D-455AC3798172}"
+Cache_GenGUID[4][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
+[AB_Cache_{5A253E01-AB84-45C1-A8E1-BD002C9D93C5}]
+Cache_ProjSymbolChksum[String] = "1b1d56e59762b815962039b3fb528872"
+Cache_TargetSymbolChksum[String] = "7dea362b3fac8e00956a4952a3d4f474"
+Cache_MyCompChksum[String] = "f789a5b0734ac992fe03c83fb63d5050"
+Cache_GenFile_Count[Integer] = 5
+Cache_GenFile[0][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.exe"
+Cache_GenFile[1][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.aliases"
+Cache_GenFile[2][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.ini"
+Cache_GenFile[3][Path] = "/C/USB CAN Tool/build/USB_CAN_Tool.tlb"
+Cache_GenFile[4][Path] = "/C/USB CAN Tool/build/ControlCAN.dll"
+Cache_GenGUID_Count[Integer] = 5
+Cache_GenGUID[0][String] = "{1C1105DE-0E8D-4C8B-970F-BC946FE5A279}"
+Cache_GenGUID[1][String] = "{AF222E1B-A591-4567-9F2E-E456761CE97F}"
+Cache_GenGUID[2][String] = "{A5AD3E97-4D30-4B33-BA9E-903109C30985}"
+Cache_GenGUID[3][String] = "{5E688CE1-1EBF-4C03-BB5D-455AC3798172}"
+Cache_GenGUID[4][String] = ""
+Cache_OutputDir[Path] = "/C/USB CAN Tool/build"
+
