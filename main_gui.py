@@ -521,7 +521,7 @@ class AcePowerControllerGUI(QMainWindow):
         if t == "VOLTAGE": self.lbl_v.setText(f"{v:.2f} V")
         elif t == "CURRENT": self.lbl_i.setText(f"{v:.2f} A")
         elif t == "AC_VIN": self.lbl_ac_vin.setText(f"{v:.2f} V")
-        elif t == "TEMP": self.lbl_temp.setText(f"{v/100:.1f} °C") # Giả định mC
+        elif t == "TEMP": self.lbl_temp.setText(f"{v/1000:.1f} °C") # Unit mC (x1000)
         elif t == "FAN": self.lbl_fan.setText(f"{int(v)} RPM")
         elif t == "STATUS":
             st = int(v)
