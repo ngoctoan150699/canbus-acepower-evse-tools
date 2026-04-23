@@ -208,7 +208,7 @@ class SimpleModuleSimulator(QMainWindow):
             if cmd == 0x00: self.send_auto_res(res_id, 0x00, int(self.act_v*1000))
             elif cmd == 0x01: self.send_auto_res(res_id, 0x01, int(self.act_i*1000))
             elif cmd == 0x14: self.send_auto_res(res_id, 0x14, int(self.ac_vin*1000))
-            elif cmd == 0x1E: self.send_auto_res(res_id, 0x1E, int(self.temp_c*100)) # mC
+            elif cmd == 0x1E: self.send_auto_res(res_id, 0x1E, int(self.temp_c*1000)) # mC (x1000)
             elif 0x78 <= cmd <= 0x7A: self.send_auto_res(res_id, cmd, int(self.fan_rpm))
             elif cmd == 0x08:
                 st = (1 << 25) if not self.is_on else 0

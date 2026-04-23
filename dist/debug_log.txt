@@ -4,3 +4,22 @@
 [2026-04-15 10:07:58] Scan finished. Found 1 devices.
 [2026-04-15 10:07:58] Simu UI: Found 1 devices
 [2026-04-15 10:08:03] UI: Connecting to dev_type=4, idx=0, can=0, baud=125 Kbps
+[2026-04-22 15:23:32] Simu UI: Scan Button Clicked
+[2026-04-22 15:23:32] Starting safe sequential scan for dev_type=4
+[2026-04-22 15:23:32] Scan: Found device 0
+[2026-04-22 15:23:32] Scan finished. Found 1 devices.
+[2026-04-22 15:23:32] Simu UI: Found 1 devices
+[2026-04-22 15:23:39] UI: Connecting to dev_type=4, idx=0, can=0, baud=125 Kbps
+[2026-04-22 15:37:03] Simu UI: Scan Button Clicked
+[2026-04-22 15:37:03] Starting safe sequential scan for dev_type=4
+[2026-04-22 15:37:03] Scan: Found device 0
+[2026-04-22 15:37:03] Scan finished. Found 1 devices.
+[2026-04-22 15:37:03] Simu UI: Found 1 devices
+[2026-04-22 15:37:06] UI: Connecting to dev_type=4, idx=0, can=0, baud=125 Kbps
+[2026-04-22 15:46:20] Simu UI: Scan Button Clicked
+[2026-04-22 15:46:20] Starting safe sequential scan for dev_type=4
+[2026-04-22 15:46:20] Scan: Found device 0
+[2026-04-22 15:46:20] Scan finished. Found 1 devices.
+[2026-04-22 15:46:20] Simu UI: Found 1 devices
+[2026-04-22 15:46:23] UI: Connecting to dev_type=4, idx=0, can=0, baud=125 Kbps
+[2026-04-22 16:13:43] UI: Connecting to dev_type=4, idx=0, can=0, baud=125 Kbps
