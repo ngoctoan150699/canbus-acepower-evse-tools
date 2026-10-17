@@ -204,11 +204,14 @@ class AcePowerCANController:
             
         res = self.lib.VCI_Transmit(self.dev_type, self.dev_idx, self.can_idx, ctypes.byref(obj), 1)
         if res == 1:
+            self.tx_error_count = 0
             if self.on_tx_log_callback:
                 self.on_tx_log_callback(can_id, list(data_bytes), meaning)
             return True
         else:
-            print(f"Error sending frame ID {hex(can_id)}")
+            self.tx_error_count = getattr(self, 'tx_error_count', 0) + 1
+            if self.tx_error_count <= 3:
+                print(f"Error sending frame ID {hex(can_id)}")
             return False
 
     # ---- Module Controls ----
@@ -250,6 +253,26 @@ class AcePowerCANController:
         data = bytearray([0x10, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01])
         can_id = self.build_id(module_addr=module_addr)
         self.send_frame(can_id, data, "Command: Power OFF")
+
+    def send_all_set_data(self, module_addr, v_volts, i_amps, on_off=0, hilo=0):
+        """
+        AllSetData command (MessageType = 0x0B). Unit: 0.1V and 0.1A.
+        on_off: 0: Turn ON DC, 1: Shutdown DC
+        hilo: 0: NoSelection, 2: HiMode, 3: LoMode
+        """
+        data = bytearray(8)
+        data[0] = 0x1B # Group 1, MsgType 11 (0x0B)
+        data[1] = ((hilo & 0x03) << 6) | (on_off & 0x03)
+        i_tenth = int(i_amps * 10) # 0.1A
+        data[2] = (i_tenth >> 8) & 0xFF
+        data[3] = i_tenth & 0xFF
+        v_tenth = int(v_volts * 10) # 0.1V
+        data[4] = (v_tenth >> 8) & 0xFF
+        data[5] = v_tenth & 0xFF
+        data[6] = (v_tenth >> 8) & 0xFF
+        data[7] = v_tenth & 0xFF
+        can_id = self.build_id(module_addr=module_addr)
+        self.send_frame(can_id, data, f"AllSetData: {v_volts}V, {i_amps}A, OnOff={on_off}")
         
     def read_voltage(self, module_addr):
         """Request Read Output Voltage"""
@@ -288,6 +311,20 @@ class AcePowerCANController:
         can_id = self.build_id(module_addr=module_addr)
         self.send_frame(can_id, data, f"Request: Read Fan {fan_idx} Speed")
 
+    def read_capability(self, module_addr):
+        """Request Read Output Current Capability (Command 104 / 0x68)"""
+        data = bytearray([0x12, 0x68, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+        can_id = self.build_id(module_addr=module_addr)
+        self.send_frame(can_id, data, "Request: Read Current Capability")
+
+    def poll_all(self, module_addr):
+        """Send all read commands sequentially to read complete log from module"""
+        self.read_voltage(module_addr)
+        self.read_current(module_addr)
+        self.read_status(module_addr)
+        self.read_ac_vin(module_addr)
+        self.read_temp(module_addr)
+
     def _rx_loop(self):
         buffer_size = 50
         vci_obj_array = (VCI_CAN_OBJ * buffer_size)()
@@ -312,10 +349,10 @@ class AcePowerCANController:
                             self.on_all_rx_callback(frame_id, frame_data, "Receive", frame.ExternFlag, frame.RemoteFlag)
                         
                         if len(frame_data) == 8:
-                            msg_code = frame_data[0]
+                            msg_type = frame_data[0] & 0x0F
                             cmd_type = frame_data[1]
                             
-                            if msg_code == 0x13: 
+                            if msg_type == 0x03: # ReadDataResponse (matches 0x03, 0x13, 0x23, ...)
                                 val = (frame_data[4] << 24) | (frame_data[5] << 16) | (frame_data[6] << 8) | frame_data[7]
                                 res_type = ""
                                 actual_val = 0
@@ -326,9 +363,19 @@ class AcePowerCANController:
                                 elif cmd_type == 0x14: res_type = "AC_VIN"; actual_val = val / 1000.0
                                 elif cmd_type == 0x1E: res_type = "TEMP"; actual_val = val 
                                 elif 120 <= cmd_type <= 122: res_type = "FAN"; actual_val = val
+                                elif cmd_type == 0x68 or cmd_type == 104: res_type = "CAPABILITY"; actual_val = val / 1000.0
                                     
                                 if res_type and self.on_data_received_callback:
                                     self.on_data_received_callback(res_type, actual_val)
+                            elif msg_type == 0x01: # SetDataResponse (matches 0x01, 0x11, 0x21, ...)
+                                val = (frame_data[4] << 24) | (frame_data[5] << 16) | (frame_data[6] << 8) | frame_data[7]
+                                if self.on_data_received_callback:
+                                    if cmd_type == 0x04:
+                                        self.on_data_received_callback("POWER_ACK", float(frame_data[7]))
+                                    elif cmd_type == 0x02:
+                                        self.on_data_received_callback("SET_V_ACK", val / 1000.0)
+                                    elif cmd_type == 0x03:
+                                        self.on_data_received_callback("SET_I_ACK", val / 1000.0)
                                     
                 elif num_read == -1 or num_read >= 0x7FFFFFFF:
                     # Possible error or device disconnected

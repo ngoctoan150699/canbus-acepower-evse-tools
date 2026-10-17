@@ -2,6 +2,7 @@
 import sys
 import os
 import re
+import time
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QMessageBox,
                              QGridLayout, QFrame, QTableWidget, QTableWidgetItem, QHeaderView,
@@ -148,6 +149,7 @@ class AcePowerControllerGUI(QMainWindow):
         self.combo_module_addr = QComboBox()
         self.combo_module_addr.addItem("0 (TẤT CẢ MODULE - Broadcast)")
         self.combo_module_addr.addItems([str(i) for i in range(1, 61)])
+        self.combo_module_addr.setCurrentIndex(1) # Mặc định chọn Module 1
         self.combo_module_addr.setFixedWidth(280)
         self.combo_module_addr.setStyleSheet("font-size: 13px; font-weight: bold; height: 30px;")
         info_row.addWidget(self.combo_module_addr)
@@ -190,14 +192,21 @@ class AcePowerControllerGUI(QMainWindow):
         l_ctrl.addStretch()
         
         pwr_box = QHBoxLayout()
-        self.btn_power_on = QPushButton("⚡ POWER ON"); self.btn_power_on.setFixedHeight(60)
-        self.btn_power_on.setStyleSheet("background: #198754; color: white; font-size: 16px; font-weight: bold;")
+        self.btn_power_on = QPushButton("⚡ POWER ON"); self.btn_power_on.setFixedHeight(55)
+        self.btn_power_on.setStyleSheet("background: #198754; color: white; font-size: 15px; font-weight: bold;")
         self.btn_power_on.clicked.connect(self.action_power_on)
-        self.btn_power_off = QPushButton("⛔ POWER OFF"); self.btn_power_off.setFixedHeight(60)
-        self.btn_power_off.setStyleSheet("background: #dc3545; color: white; font-size: 16px; font-weight: bold;")
+        self.btn_power_off = QPushButton("⛔ POWER OFF"); self.btn_power_off.setFixedHeight(55)
+        self.btn_power_off.setStyleSheet("background: #dc3545; color: white; font-size: 15px; font-weight: bold;")
         self.btn_power_off.clicked.connect(self.action_power_off)
         pwr_box.addWidget(self.btn_power_on, 2); pwr_box.addWidget(self.btn_power_off, 1)
         l_ctrl.addLayout(pwr_box)
+
+        self.btn_read_log = QPushButton("🔄 ĐỌC LOG LẠI (POLL STATUS)")
+        self.btn_read_log.setFixedHeight(45)
+        self.btn_read_log.setStyleSheet("background: #0dcaf0; color: #000; font-size: 13px; font-weight: bold; border-radius: 6px;")
+        self.btn_read_log.clicked.connect(self.action_read_log)
+        l_ctrl.addWidget(self.btn_read_log)
+
         g_ctrl.setLayout(l_ctrl)
         dash_layout.addWidget(g_ctrl, 3)
         
@@ -227,11 +236,13 @@ class AcePowerControllerGUI(QMainWindow):
         l_st = QVBoxLayout()
         l_st.setSpacing(8)
         
-        # Secondary Data (AC, Temp, Fan)
+        # Secondary Data (AC, Temp, Fan, DCDC State, Loop Mode)
         sub_grid = QGridLayout()
         sub_grid.addWidget(QLabel("AC Input:"), 0, 0); self.lbl_ac_vin = QLabel("--- V"); self.lbl_ac_vin.setStyleSheet("font-weight: bold; color: #0d6efd;"); sub_grid.addWidget(self.lbl_ac_vin, 0, 1)
         sub_grid.addWidget(QLabel("Temp:"), 1, 0); self.lbl_temp = QLabel("--- °C"); self.lbl_temp.setStyleSheet("font-weight: bold; color: #dc3545;"); sub_grid.addWidget(self.lbl_temp, 1, 1)
         sub_grid.addWidget(QLabel("Fan:"), 2, 0); self.lbl_fan = QLabel("--- RPM"); self.lbl_fan.setStyleSheet("font-weight: bold; color: #198754;"); sub_grid.addWidget(self.lbl_fan, 2, 1)
+        sub_grid.addWidget(QLabel("Trạng thái:"), 3, 0); self.lbl_dcdc_state = QLabel("SHUTDOWN"); self.lbl_dcdc_state.setStyleSheet("font-weight: bold; color: #dc3545;"); sub_grid.addWidget(self.lbl_dcdc_state, 3, 1)
+        sub_grid.addWidget(QLabel("Chế độ ra:"), 4, 0); self.lbl_loop_mode = QLabel("---"); self.lbl_loop_mode.setStyleSheet("font-weight: bold; color: #495057;"); sub_grid.addWidget(self.lbl_loop_mode, 4, 1)
         l_st.addLayout(sub_grid)
         
         l_st.addSpacing(10)
@@ -442,6 +453,7 @@ class AcePowerControllerGUI(QMainWindow):
 
     def _toggle_control_state(self, conn):
         self.btn_power_on.setEnabled(conn); self.btn_power_off.setEnabled(conn)
+        self.btn_read_log.setEnabled(conn)
         self.btn_send_raw.setEnabled(conn)
 
     def action_set_voltage(self):
@@ -461,27 +473,62 @@ class AcePowerControllerGUI(QMainWindow):
     def action_power_on(self):
         try:
             addr = int(re.search(r'\d+', self.combo_module_addr.currentText()).group())
+            self.is_power_on_active = True
             self.can_ctrl.power_on(addr)
+            # Tự động phát lệnh đọc log lại ngay sau khi bật nguồn
+            QTimer.singleShot(200, self.action_read_log)
         except: pass
 
     def action_power_off(self):
         try:
             addr = int(re.search(r'\d+', self.combo_module_addr.currentText()).group())
+            self.is_power_on_active = False
             self.can_ctrl.power_off(addr)
+            # Tự động đọc lại sau khi gửi lệnh tắt
+            QTimer.singleShot(200, self.action_read_log)
         except: pass
+
+    def action_read_log(self):
+        """Chủ động gửi chuỗi lệnh đọc log (Voltage, Current, Status, AC Vin, Temp)"""
+        if self.can_ctrl.connected:
+            try:
+                addr_str = self.combo_module_addr.currentText()
+                addr = int(re.search(r'\d+', addr_str).group())
+                target_addr = addr if addr > 0 else 1
+                self.can_ctrl.read_voltage(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_current(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_status(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_ac_vin(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_temp(target_addr)
+            except: pass
 
     def poll_module(self):
         if self.can_ctrl.connected:
             try:
                 addr_str = self.combo_module_addr.currentText()
                 addr = int(re.search(r'\d+', addr_str).group())
-                if addr == 0: return 
-                # Poll all parameters
-                self.can_ctrl.read_voltage(addr)
-                self.can_ctrl.read_current(addr)
-                self.can_ctrl.read_status(addr)
-                self.can_ctrl.read_ac_vin(addr)
-                self.can_ctrl.read_temp(addr)
+                target_addr = addr if addr > 0 else 1
+                
+                # 1. Cơ chế Keep-Alive: Nếu module đang bật ON, duy trì gửi lại lệnh ON định kỳ
+                # để ngăn Watchdog Timeout của module tự ngắt an toàn
+                if getattr(self, 'is_power_on_active', False):
+                    self.can_ctrl.power_on(addr)
+                    time.sleep(0.015)
+                
+                # 2. Đọc thông số tuần tự có giãn cách 15ms chống nghẽn CAN mailbox
+                self.can_ctrl.read_voltage(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_current(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_status(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_ac_vin(target_addr)
+                time.sleep(0.015)
+                self.can_ctrl.read_temp(target_addr)
             except: pass
 
     def _on_can_data(self, t, v): self.signal_data_received.emit(t, v)
@@ -523,6 +570,13 @@ class AcePowerControllerGUI(QMainWindow):
         elif t == "AC_VIN": self.lbl_ac_vin.setText(f"{v:.2f} V")
         elif t == "TEMP": self.lbl_temp.setText(f"{v/1000:.1f} °C") # Unit mC (x1000)
         elif t == "FAN": self.lbl_fan.setText(f"{int(v)} RPM")
+        elif t == "POWER_ACK":
+            state = "ON" if v == 0 else "OFF"
+            r = self.tab_mini_log.rowCount(); self.tab_mini_log.insertRow(r)
+            self.tab_mini_log.setItem(r, 0, QTableWidgetItem(QDateTime.currentDateTime().toString("HH:mm:ss")))
+            self.tab_mini_log.setItem(r, 1, QTableWidgetItem("ACK (0x11)"))
+            self.tab_mini_log.setItem(r, 2, QTableWidgetItem(f"Module phản hồi: Power {state} OK"))
+            self.tab_mini_log.scrollToBottom()
         elif t == "STATUS":
             st = int(v)
             # Update LEDs: Bit 0: AC, Bit 1: DC, Bit 2: OT, Bit 9: Fan
@@ -530,8 +584,26 @@ class AcePowerControllerGUI(QMainWindow):
             self._set_led(self.led_dc, (st >> 1) & 1)
             self._set_led(self.led_tem, (st >> 2) & 1)
             self._set_led(self.led_fan, (st >> 9) & 1)
-            # Power LED (Bit 25)
-            self._set_led(self.led_comm, 0, "green") # Giao tiếp OK
+            
+            # Bit 25: DcdcNotRun (0: Running / ON, 1: Shutdown / OFF)
+            is_running = ((st >> 25) & 1) == 0
+            if is_running:
+                self.lbl_dcdc_state.setText("RUNNING (ON)")
+                self.lbl_dcdc_state.setStyleSheet("font-weight: bold; color: #198754; font-size: 13px;")
+                self._set_led(self.led_comm, 0, "#198754")
+            else:
+                self.lbl_dcdc_state.setText("SHUTDOWN (OFF)")
+                self.lbl_dcdc_state.setStyleSheet("font-weight: bold; color: #dc3545; font-size: 13px;")
+                self._set_led(self.led_comm, 0, "#ced4da")
+                
+            # Bit 26:27: OutputMode (0: Voltage Loop / CV, 2: Current Loop / CC)
+            loop_mode = (st >> 26) & 0x03
+            if loop_mode == 0:
+                self.lbl_loop_mode.setText("CV (Áp không đổi)")
+            elif loop_mode == 2:
+                self.lbl_loop_mode.setText("CC (Hạn dòng)")
+            else:
+                self.lbl_loop_mode.setText(f"Mode {loop_mode}")
 
     def _set_led(self, led_widget, error, forced_color=None):
         if forced_color: color = forced_color

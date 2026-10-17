@@ -239,6 +239,9 @@ class SimpleModuleSimulator(QMainWindow):
                 except: pass
             elif cmd == 0x04:
                 self.is_on = (data[7] == 0)
+                raw = ' '.join([f"{x:02X}" for x in data])
+                try: self.signal_cmd.emit(0x04, 1.0 if self.is_on else 0.0, raw)
+                except: pass
         elif msg_type == 0x02: # READ
             if cmd == 0x00: self.send_auto_res(res_id, 0x00, int(self.act_v*1000))
             elif cmd == 0x01: self.send_auto_res(res_id, 0x01, int(self.act_i*1000))
@@ -342,8 +345,18 @@ class SimpleModuleSimulator(QMainWindow):
 
     def add_captured_cmd(self, cmd, val, raw):
         t = QDateTime.currentDateTime().toString("HH:mm:ss")
-        typ = "VOLTAGE SET" if cmd == 0x02 else ("CURRENT SET" if cmd == 0x03 else f"CMD 0x{cmd:02X}")
-        vstr = f"{val:.3f} V" if cmd == 0x02 else f"{val:.3f} A"
+        if cmd == 0x02:
+            typ = "VOLTAGE SET"
+            vstr = f"{val:.3f} V"
+        elif cmd == 0x03:
+            typ = "CURRENT SET"
+            vstr = f"{val:.3f} A"
+        elif cmd == 0x04:
+            typ = "POWER ON" if val > 0.5 else "POWER OFF"
+            vstr = "ENABLE (RUN)" if val > 0.5 else "DISABLE (SHUTDOWN)"
+        else:
+            typ = f"CMD 0x{cmd:02X}"
+            vstr = f"{val:.3f}"
         r = self.table_cmds.rowCount(); self.table_cmds.insertRow(r)
         self.table_cmds.setItem(r, 0, QTableWidgetItem(t))
         self.table_cmds.setItem(r, 1, QTableWidgetItem(typ))
