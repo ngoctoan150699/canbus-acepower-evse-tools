@@ -120,6 +120,17 @@ class AcePowerControllerGUI(QMainWindow):
         self.btn_connect.setEnabled(False)
         self.btn_connect.clicked.connect(self.on_connect_clicked)
         l_conn.addWidget(self.btn_connect)
+
+        self.btn_open_sim = QPushButton("🧪 MÔ PHỎNG (SIMULATOR)")
+        self.btn_open_sim.setStyleSheet("background: #6f42c1; color: white; font-weight: bold; padding: 8px 12px; border: none; border-radius: 6px;")
+        self.btn_open_sim.clicked.connect(self.open_simulator)
+        l_conn.addWidget(self.btn_open_sim)
+
+        self.btn_open_fiver = QPushButton("🔌 FIVEREVSE")
+        self.btn_open_fiver.setStyleSheet("background: #fd7e14; color: white; font-weight: bold; padding: 8px 12px; border: none; border-radius: 6px;")
+        self.btn_open_fiver.clicked.connect(self.open_fiverevse)
+        l_conn.addWidget(self.btn_open_fiver)
+
         group_conn.setLayout(l_conn)
         layout.addWidget(group_conn)
 
@@ -455,6 +466,28 @@ class AcePowerControllerGUI(QMainWindow):
         self.btn_power_on.setEnabled(conn); self.btn_power_off.setEnabled(conn)
         self.btn_read_log.setEnabled(conn)
         self.btn_send_raw.setEnabled(conn)
+
+    def open_simulator(self):
+        try:
+            from module_sim_gui import SimpleModuleSimulator
+            if not hasattr(self, 'sim_window') or self.sim_window is None:
+                self.sim_window = SimpleModuleSimulator()
+            self.sim_window.show()
+            self.sim_window.raise_()
+            self.sim_window.activateWindow()
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể mở Simulator: {e}")
+
+    def open_fiverevse(self):
+        try:
+            from fiverevse_gui import FiverevseControllerGUI
+            if not hasattr(self, 'fiver_window') or self.fiver_window is None:
+                self.fiver_window = FiverevseControllerGUI()
+            self.fiver_window.show()
+            self.fiver_window.raise_()
+            self.fiver_window.activateWindow()
+        except Exception as e:
+            QMessageBox.warning(self, "Lỗi", f"Không thể mở Fiverevse: {e}")
 
     def action_set_voltage(self):
         try:

@@ -6,3 +6,5 @@ debug_log.txt
 dist/debug_log.txt
 fiverevse_debug_log.txt
 dist/*.zip
+
+build/
