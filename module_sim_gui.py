@@ -7,7 +7,7 @@ import re
 import random
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QComboBox, QPushButton, QGroupBox, QLineEdit, QMessageBox,
-                             QGridLayout, QTextEdit, QSpinBox, QCheckBox)
+                             QGridLayout, QTextEdit, QSpinBox, QCheckBox, QTableWidget, QTableWidgetItem)
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QDateTime
 from PyQt5.QtGui import QFont, QIcon
 
@@ -16,6 +16,7 @@ from acepower_can import AcePowerCANController, BAUDRATE_MAP, DEVICE_TYPES, VCI_
 
 class SimpleModuleSimulator(QMainWindow):
     signal_rx = pyqtSignal(str)
+    signal_cmd = pyqtSignal(int, float, str)
 
     def __init__(self):
         super().__init__()
@@ -26,7 +27,7 @@ class SimpleModuleSimulator(QMainWindow):
         self.act_v = 0.0
         self.act_i = 0.0
         self.set_v = 100.0
-        self.set_i = 10.0
+        self.set_i = 20.0
         self.ac_vin = 220.0
         self.temp_c = 32.0
         self.fan_rpm = 0
@@ -38,8 +39,10 @@ class SimpleModuleSimulator(QMainWindow):
         
         self.init_ui()
         self.signal_rx.connect(self.update_log)
+        self.signal_cmd.connect(self.add_captured_cmd)
         
         self.sim_thread_running = True
+        self.sim_paused = False
         self.sim_thread = threading.Thread(target=self.physics_loop, daemon=True)
         self.sim_thread.start()
         
@@ -95,6 +98,17 @@ class SimpleModuleSimulator(QMainWindow):
         self.spin_addr.setFixedWidth(50)
         h_st.addWidget(self.spin_addr)
         
+        # Pause/Resume simulation and Clear Log buttons
+        self.btn_pause = QPushButton("Pause")
+        self.btn_pause.setFixedWidth(80)
+        self.btn_pause.clicked.connect(self.toggle_sim_pause)
+        h_st.addWidget(self.btn_pause)
+
+        self.btn_clear_log = QPushButton("Clear Log")
+        self.btn_clear_log.setFixedWidth(100)
+        self.btn_clear_log.clicked.connect(self.clear_log)
+        h_st.addWidget(self.btn_clear_log)
+        
         self.lbl_status = QLabel("STATE: OFF | V: 0.00V | I: 0.00A")
         self.lbl_status.setFont(QFont("Consolas", 12, QFont.Bold))
         h_st.addWidget(self.lbl_status, stretch=1)
@@ -112,6 +126,16 @@ class SimpleModuleSimulator(QMainWindow):
         self.txt_log.setReadOnly(True)
         self.txt_log.setFont(QFont("Consolas", 10))
         main_layout.addWidget(self.txt_log)
+
+        # Captured SET commands (Voltage / Current)
+        group_catch = QGroupBox("Captured SET Commands")
+        l_catch = QVBoxLayout()
+        self.table_cmds = QTableWidget(0, 4)
+        self.table_cmds.setHorizontalHeaderLabels(["Time", "Type", "Value", "Raw Data"])
+        self.table_cmds.horizontalHeader().setStretchLastSection(True)
+        l_catch.addWidget(self.table_cmds)
+        group_catch.setLayout(l_catch)
+        main_layout.addWidget(group_catch)
 
         # 4. Manual Send
         group_send = QGroupBox("Manual Response")
@@ -201,9 +225,20 @@ class SimpleModuleSimulator(QMainWindow):
 
         if msg_type == 0x00: # SET
             self.send_auto_res(res_id, cmd, 0, msg_type_res=0x01)
-            if cmd == 0x02: self.set_v = ((data[4]<<24)|(data[5]<<16)|(data[6]<<8)|data[7]) / 1000.0
-            elif cmd == 0x03: self.set_i = ((data[4]<<24)|(data[5]<<16)|(data[6]<<8)|data[7]) / 1000.0
-            elif cmd == 0x04: self.is_on = (data[7] == 0)
+            if cmd == 0x02:
+                self.set_v = ((data[4]<<24)|(data[5]<<16)|(data[6]<<8)|data[7]) / 1000.0
+                raw = ' '.join([f"{x:02X}" for x in data])
+                try: self.signal_cmd.emit(0x02, self.set_v, raw)
+                except: pass
+            elif cmd == 0x03:
+                self.set_i = ((data[4]<<24)|(data[5]<<16)|(data[6]<<8)|data[7]) / 1000.0
+                if self.act_i > self.set_i:
+                    self.act_i = self.set_i
+                raw = ' '.join([f"{x:02X}" for x in data])
+                try: self.signal_cmd.emit(0x03, self.set_i, raw)
+                except: pass
+            elif cmd == 0x04:
+                self.is_on = (data[7] == 0)
         elif msg_type == 0x02: # READ
             if cmd == 0x00: self.send_auto_res(res_id, 0x00, int(self.act_v*1000))
             elif cmd == 0x01: self.send_auto_res(res_id, 0x01, int(self.act_i*1000))
@@ -230,8 +265,25 @@ class SimpleModuleSimulator(QMainWindow):
             self.can_ctrl.send_frame(cid, payload, "Manual"); self.signal_rx.emit(f"SENT MANUAL ID: 0x{cid:08X}")
         except Exception as e: QMessageBox.warning(self, "Err", str(e))
 
+    def toggle_sim_pause(self):
+        """Toggle pause/resume of the simulation loop."""
+        self.sim_paused = not getattr(self, 'sim_paused', False)
+        try:
+            self.btn_pause.setText("Resume" if self.sim_paused else "Pause")
+        except Exception:
+            pass
+
+    def clear_log(self):
+        try:
+            self.txt_log.clear()
+        except Exception:
+            pass
+
     def physics_loop(self):
         while self.sim_thread_running:
+            if getattr(self, 'sim_paused', False):
+                time.sleep(0.1)
+                continue
             # 1. AC Voltage simulation (stable around 220V)
             self.ac_vin = 220.0 + random.uniform(-1.5, 1.5)
             
@@ -248,11 +300,17 @@ class SimpleModuleSimulator(QMainWindow):
                 # Add tiny ripple to voltage
                 self.act_v += random.uniform(-0.05, 0.05) if self.act_v > 0 else 0
                 
-                # Current follows load logic (simulated load resistance)
-                target_i = self.set_i * 0.95
-                if self.act_i < target_i: self.act_i += 1.0
-                elif self.act_i > target_i: self.act_i -= 0.5
+                # Current follows load logic (respect configured max current)
+                target_i = self.set_i
+                if self.act_i < target_i:
+                    step = min((target_i - self.act_i), 1.0)
+                    self.act_i += step
+                elif self.act_i > target_i:
+                    self.act_i = max(self.act_i - 0.5, target_i)
                 self.act_i += random.uniform(-0.02, 0.02)
+                # Ensure we never exceed configured max or go negative
+                if self.act_i > self.set_i: self.act_i = self.set_i
+                if self.act_i < 0: self.act_i = 0
                 
                 # Fan Speed logic
                 self.fan_rpm = 4500 + random.randint(-50, 50)
@@ -272,7 +330,7 @@ class SimpleModuleSimulator(QMainWindow):
             # UI Update
             st_text = "RUNNING" if self.is_on else "SHUTDOWN"
             color = "green" if self.is_on else "red"
-            status_str = f"STATE: {st_text} | V: {self.act_v:.1f}V | I: {self.act_i:.1f}A | AC: {self.ac_vin:.1f}V | Temp: {self.temp_c:.1f}C"
+            status_str = f"STATE: {st_text} | V: {self.act_v:.1f}V | I: {self.act_i:.1f}A | SET_I: {self.set_i:.1f}A | AC: {self.ac_vin:.1f}V | Temp: {self.temp_c:.1f}C"
             self.lbl_status.setText(status_str)
             self.lbl_status.setStyleSheet(f"color: {color}; font-weight: bold;")
             
@@ -281,6 +339,17 @@ class SimpleModuleSimulator(QMainWindow):
     @pyqtSlot(str)
     def update_log(self, text):
         self.txt_log.append(text)
+
+    def add_captured_cmd(self, cmd, val, raw):
+        t = QDateTime.currentDateTime().toString("HH:mm:ss")
+        typ = "VOLTAGE SET" if cmd == 0x02 else ("CURRENT SET" if cmd == 0x03 else f"CMD 0x{cmd:02X}")
+        vstr = f"{val:.3f} V" if cmd == 0x02 else f"{val:.3f} A"
+        r = self.table_cmds.rowCount(); self.table_cmds.insertRow(r)
+        self.table_cmds.setItem(r, 0, QTableWidgetItem(t))
+        self.table_cmds.setItem(r, 1, QTableWidgetItem(typ))
+        self.table_cmds.setItem(r, 2, QTableWidgetItem(vstr))
+        self.table_cmds.setItem(r, 3, QTableWidgetItem(raw))
+        self.table_cmds.scrollToBottom()
 
     def closeEvent(self, event):
         self.rx_running = False; self.sim_thread_running = False; self.can_ctrl.disconnect(); event.accept()

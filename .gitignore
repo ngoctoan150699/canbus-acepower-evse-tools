@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+debug_log.txt
+dist/debug_log.txt
+fiverevse_debug_log.txt
